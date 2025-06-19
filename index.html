@@ -1,60 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Math Riddles Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
       --accent: #00e6e6;
-      --bg-dark: #121212;
-      --bg-card: #1e1e1e;
+      --bg-dark: #0a0a0a;
       --font: 'Segoe UI', sans-serif;
     }
-    body, html {
+    html, body {
       margin: 0;
       padding: 0;
       font-family: var(--font);
       background: var(--bg-dark);
-      color: #fff;
+      color: white;
       height: 100%;
-      overflow-x: hidden;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .container {
-      max-width: 500px;
-      margin: auto;
-      padding: 20px;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: radial-gradient(ellipse at top, #1e1e1e, #000);
     }
     .screen {
       display: none;
-      background: var(--bg-card);
-      border-radius: 12px;
-      padding: 25px 15px;
-      box-shadow: 0 0 15px rgba(0,255,255,0.1);
-      transition: all 0.3s ease-in-out;
+      width: 100%;
+      height: 100%;
+      max-width: 500px;
+      padding: 30px 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
     }
     .active {
       display: block;
     }
-    h1, h2 {
+    h1 {
+      font-size: 42px;
       color: var(--accent);
-      margin: 10px 0 20px;
+      text-align: center;
+      margin-bottom: 50px;
+      text-shadow: 0 0 12px var(--accent);
+    }
+    h2 {
+      font-size: 28px;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 20px;
     }
     .btn {
       background: var(--accent);
       color: #000;
       border: none;
-      padding: 14px 20px;
-      border-radius: 10px;
-      font-size: 17px;
+      padding: 16px;
+      font-size: 18px;
+      border-radius: 12px;
       margin: 10px auto;
       display: block;
       width: 90%;
       cursor: pointer;
-      transition: 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 230, 230, 0.3);
+      transition: 0.3s ease;
     }
     .btn:hover {
       background: #00bdbd;
+      box-shadow: 0 4px 20px rgba(0, 230, 230, 0.5);
     }
     .keypad {
       display: grid;
@@ -63,8 +83,8 @@
       margin: 25px 0;
     }
     .keypad button {
-      padding: 18px;
-      font-size: 22px;
+      padding: 20px;
+      font-size: 24px;
       background: #00bcd4;
       color: white;
       border: none;
@@ -75,11 +95,13 @@
       color: #ffd54f;
       margin: 15px;
       min-height: 30px;
+      text-align: center;
     }
     .result {
       font-size: 18px;
       margin-top: 10px;
       min-height: 25px;
+      text-align: center;
     }
     .level-grid {
       display: grid;
@@ -88,7 +110,7 @@
       margin: 20px 0;
     }
     .level-grid button {
-      padding: 12px;
+      padding: 14px;
       border-radius: 8px;
       background-color: #333;
       color: #fff;
@@ -102,8 +124,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 0;
-      margin-top: 15px;
+      margin: 30px 0;
+      padding: 0 10px;
     }
     .toggle-container label {
       font-size: 18px;
@@ -121,9 +143,7 @@
   </style>
 </head>
 <body>
-
 <div class="container">
-
   <!-- Home Screen -->
   <div id="homeScreen" class="screen active">
     <h1>🧠 Math Riddles</h1>
@@ -143,17 +163,17 @@
     <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
   </div>
 
-  <!-- Levels -->
+  <!-- Levels Screen -->
   <div id="levelsScreen" class="screen">
     <h2>Select Level</h2>
     <div class="level-grid" id="levelButtons"></div>
     <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
   </div>
 
-  <!-- Riddle -->
+  <!-- Riddle Screen -->
   <div id="riddleScreen" class="screen">
     <h2 id="levelTitle">Level</h2>
-    <div id="questionText">Question will appear here</div>
+    <div id="questionText" style="text-align: center;"></div>
     <div class="answer-box" id="answerBox"></div>
 
     <div class="keypad">
@@ -175,13 +195,11 @@
 
     <button class="btn" onclick="showHint()">Hint</button>
     <button class="btn" onclick="showSolution()">Solution</button>
-    <button class="btn" onclick="showScreen('homeScreen')">🏠 Home</button>
+    <button class="btn" onclick="showScreen('levelsScreen')">⬅ Back</button>
   </div>
 </div>
 
 <canvas id="confetti-canvas"></canvas>
-
-<!-- Sounds -->
 <audio id="bgMusic" src="bg-music.mp3" loop></audio>
 <audio id="clickSound" src="click.mp3"></audio>
 
@@ -211,16 +229,11 @@
   window.onload = () => {
     try {
       music.volume = 0.4;
-      const stored = localStorage.getItem("music");
-      if (stored !== "off") {
+      if (localStorage.getItem("music") !== "off") {
         musicToggle.checked = true;
-        setTimeout(() => {
-          music.play().catch(() => {
-            document.addEventListener('click', () => {
-              music.play().catch(() => {});
-            }, { once: true });
-          });
-        }, 100);
+        music.play().catch(() => {
+          document.addEventListener("click", () => music.play(), { once: true });
+        });
       } else {
         musicToggle.checked = false;
         music.pause();
