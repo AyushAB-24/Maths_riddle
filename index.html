@@ -31,11 +31,12 @@
       width: 100vw;
       height: 100vh;
       display: flex;
-      align-items: flex-end; /* Push content down */
+      align-items: flex-end;
       justify-content: center;
-      padding-bottom: 8vh; /* Fine-tuned vertical centering */
-      animation: fadeIn 0.7s ease-out forwards;
+      padding-bottom: 8vh;
       opacity: 0;
+      animation: fadeIn 1s ease-out forwards;
+      animation-delay: 2.5s;
     }
 
     @keyframes fadeIn {
@@ -165,9 +166,49 @@
       pointer-events: none;
       z-index: 1000;
     }
+
+    /* Splash Screen */
+    #splash {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: var(--bg-dark);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 2000;
+      animation: splashFade 2.5s ease-out forwards;
+    }
+
+    .logo {
+      font-size: 64px;
+      animation: logoAnim 2s ease-in-out infinite;
+    }
+
+    @keyframes logoAnim {
+      0% { transform: scale(1) rotate(0); }
+      30% { transform: scale(1.15) rotate(15deg); }
+      60% { transform: scale(0.95) rotate(-10deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+
+    @keyframes splashFade {
+      0% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
   </style>
 </head>
 <body>
+  <!-- Splash Screen -->
+  <div id="splash">
+    <div class="logo">🧠</div>
+    <div style="margin-top: 10px;">Math Riddles</div>
+  </div>
+
+  <!-- Main App Container -->
   <div class="container">
     <!-- Home Screen -->
     <div id="homeScreen" class="screen active">
@@ -229,6 +270,10 @@
   <audio id="clickSound" src="click.mp3"></audio>
 
   <script>
+    setTimeout(() => {
+      document.getElementById("splash").style.display = "none";
+    }, 2500);
+
     const riddles = [
       { question: "I am 2-digit. Reversed I am 27 more. Digits add to 9. What am I?", answer: "36", hint: "Reverse: 63", solution: "63 - 36 = 27" },
       { question: "Divide 30 by half and add 10.", answer: "70", hint: "Divide by 0.5", solution: "30 ÷ 0.5 + 10 = 70" },
