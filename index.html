@@ -31,19 +31,15 @@
       width: 100vw;
       height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-end; /* Push content down */
       justify-content: center;
-      flex-direction: column;
-      animation: fadeInScale 1s ease forwards;
+      padding-bottom: 8vh; /* Fine-tuned vertical centering */
+      animation: fadeIn 0.7s ease-out forwards;
       opacity: 0;
-      transform: scale(0.95);
     }
 
-    @keyframes fadeInScale {
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
 
     .screen {
@@ -224,7 +220,7 @@
 
       <button class="btn" onclick="showHint()">Hint</button>
       <button class="btn" onclick="showSolution()">Solution</button>
-      <button class="btn" onclick="showScreen('levelsScreen')">⬅ Back</button>
+      <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
     </div>
   </div>
 
