@@ -209,20 +209,29 @@
   const musicToggle = document.getElementById("musicToggle");
 
   window.onload = () => {
-    try { music.volume = 0.4; } catch {}
-    if (localStorage.getItem("music") !== "off") {
-      musicToggle.checked = true;
-      music.play().catch(() => {});
-    } else {
-      musicToggle.checked = false;
-      music.pause();
-    }
+    try {
+      music.volume = 0.4;
+      const stored = localStorage.getItem("music");
+      if (stored !== "off") {
+        musicToggle.checked = true;
+        setTimeout(() => {
+          music.play().catch(() => {
+            document.addEventListener('click', () => {
+              music.play().catch(() => {});
+            }, { once: true });
+          });
+        }, 100);
+      } else {
+        musicToggle.checked = false;
+        music.pause();
+      }
+    } catch {}
     renderLevels();
   };
 
   function toggleMusic(checkbox) {
     if (checkbox.checked) {
-      music.play();
+      music.play().catch(() => {});
       localStorage.setItem("music", "on");
     } else {
       music.pause();
