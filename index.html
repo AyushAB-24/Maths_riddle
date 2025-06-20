@@ -185,13 +185,23 @@
 
     /* Compact Riddle Screen Styles */
     #riddleScreen {
-      justify-content: flex-start;
-      padding-top: 10px;
+      justify-content: center;
+      padding-top: 0;
     }
 
     #riddleScreen h2 {
       margin-bottom: 8px;
       font-size: clamp(18px, 5vw, 22px);
+    }
+
+    .game-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 1;
+      width: 100%;
+      padding: 0 16px;
     }
 
     .keypad {
@@ -200,6 +210,8 @@
       gap: 6px; /* Reduced gap */
       margin: 8px 0; /* Reduced margin */
       padding: 0 8px;
+      width: 100%;
+      max-width: 300px;
     }
 
     .keypad button {
@@ -259,6 +271,8 @@
       border-radius: var(--border-radius);
       margin: 8px 0; /* Reduced margin */
       box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
     }
 
     #questionText {
@@ -519,36 +533,38 @@
 
     <!-- Riddle Screen -->
     <div id="riddleScreen" class="screen">
-      <h2 id="levelTitle">Level</h2>
-      
-      <div class="question-container">
-        <div id="questionText"></div>
-      </div>
-      
-      <div class="answer-box" id="answerBox"></div>
+      <div class="game-content">
+        <h2 id="levelTitle">Level</h2>
+        
+        <div class="question-container">
+          <div id="questionText"></div>
+        </div>
+        
+        <div class="answer-box" id="answerBox"></div>
 
-      <div class="keypad">
-        <button data-number="1">1</button>
-        <button data-number="2">2</button>
-        <button data-number="3">3</button>
-        <button data-number="4">4</button>
-        <button data-number="5">5</button>
-        <button data-number="6">6</button>
-        <button data-number="7">7</button>
-        <button data-number="8">8</button>
-        <button data-number="9">9</button>
-        <button id="clearBtn" class="operator">C</button>
-        <button data-number="0">0</button>
-        <button id="submitBtn" class="operator">✓</button>
-      </div>
+        <div class="result" id="resultMsg"></div>
 
-      <div class="result" id="resultMsg"></div>
+        <div class="keypad">
+          <button data-number="1">1</button>
+          <button data-number="2">2</button>
+          <button data-number="3">3</button>
+          <button data-number="4">4</button>
+          <button data-number="5">5</button>
+          <button data-number="6">6</button>
+          <button data-number="7">7</button>
+          <button data-number="8">8</button>
+          <button data-number="9">9</button>
+          <button id="clearBtn" class="operator">C</button>
+          <button data-number="0">0</button>
+          <button id="submitBtn" class="operator">✓</button>
+        </div>
 
-      <div style="display: flex; gap: 8px; justify-content: center; margin: 8px 0;">
-        <button class="btn secondary" id="hintBtn" style="flex: 1;">Hint</button>
-        <button class="btn secondary" id="solutionBtn" style="flex: 1;">Solution</button>
+        <div style="display: flex; gap: 8px; justify-content: center; margin: 8px 0; width: 100%; max-width: 300px;">
+          <button class="btn secondary" id="hintBtn" style="flex: 1;">Hint</button>
+          <button class="btn secondary" id="solutionBtn" style="flex: 1;">Solution</button>
+        </div>
+        <button class="btn secondary" id="backFromGameBtn">⬅ Back</button>
       </div>
-      <button class="btn secondary" id="backFromGameBtn">⬅ Back</button>
     </div>
   </div>
 
@@ -937,6 +953,8 @@
         msg.textContent = "❌ Try again";
         msg.className = "result error";
         playWrongSound();
+        userAnswer = "";
+        elements.gameElements.answerBox.textContent = "";
         setTimeout(() => {
           elements.gameElements.resultMsg.textContent = "";
           elements.gameElements.resultMsg.className = "result";
