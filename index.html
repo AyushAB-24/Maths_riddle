@@ -23,7 +23,7 @@
       --text-secondary: #BDBDBD;
       --font-main: 'Poppins', sans-serif;
       --font-mono: 'Roboto Mono', monospace;
-      --key-size: min(20vw, 80px);
+      --key-size: min(18vw, 70px);
       --border-radius: 14px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -87,21 +87,33 @@
       display: flex;
     }
 
-    /* Updated font sizes */
+    /* Home Screen - Larger Fonts */
+    #homeScreen {
+      justify-content: center;
+    }
+    
     #homeScreen h1 {
-      font-size: clamp(36px, 10vw, 48px);
+      font-size: clamp(42px, 12vw, 56px);
       color: var(--primary-light);
       text-align: center;
-      margin: 12px 0 20px;
+      margin: 20px 0 30px;
       font-weight: 600;
       text-shadow: 0 0 12px rgba(124, 77, 255, 0.4);
     }
 
+    #homeScreen .btn {
+      font-size: clamp(20px, 5vw, 24px);
+      padding: 18px;
+      margin: 12px auto;
+      max-width: 300px;
+    }
+
+    /* Other Screens - Smaller Fonts */
     h2 {
       font-size: clamp(20px, 5vw, 24px);
       color: var(--primary-light);
       text-align: center;
-      margin: 0 0 16px;
+      margin: 0 0 12px;
       font-weight: 600;
     }
 
@@ -110,7 +122,7 @@
       color: white;
       border: none;
       padding: 14px;
-      font-size: clamp(16px, 4vw, 18px);
+      font-size: clamp(15px, 4vw, 17px);
       border-radius: var(--border-radius);
       margin: 8px auto;
       display: block;
@@ -174,15 +186,15 @@
     .keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 16px 0;
+      gap: 8px;
+      margin: 12px 0;
       padding: 0 8px;
     }
 
     .keypad button {
       height: var(--key-size);
       width: 100%;
-      font-size: clamp(18px, 5vw, 22px);
+      font-size: clamp(16px, 4vw, 20px);
       background: var(--surface);
       color: white;
       border: none;
@@ -203,10 +215,10 @@
     }
 
     .answer-box {
-      font-size: clamp(22px, 6vw, 26px);
+      font-size: clamp(20px, 5vw, 24px);
       color: var(--secondary);
-      margin: 12px 8px;
-      min-height: 36px;
+      margin: 10px 8px;
+      min-height: 32px;
       text-align: center;
       font-family: var(--font-mono);
       font-weight: 500;
@@ -215,11 +227,11 @@
     }
 
     .result {
-      font-size: clamp(14px, 3.8vw, 16px);
-      margin: 12px 0;
-      min-height: 24px;
+      font-size: clamp(14px, 3.5vw, 16px);
+      margin: 10px 0;
+      min-height: 20px;
       text-align: center;
-      padding: 10px;
+      padding: 8px;
       border-radius: var(--border-radius);
       background: rgba(0, 230, 118, 0.1);
       color: var(--secondary);
@@ -233,18 +245,18 @@
     .level-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin: 16px 0;
+      gap: 6px;
+      margin: 12px 0;
       padding: 0 8px;
     }
 
     .level-grid button {
-      padding: 12px 0;
-      border-radius: 10px;
+      padding: 10px 0;
+      border-radius: 8px;
       background-color: var(--surface);
       color: var(--text-primary);
       border: none;
-      font-size: clamp(12px, 2.8vw, 14px);
+      font-size: clamp(11px, 2.5vw, 13px);
       transition: var(--transition);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
@@ -268,26 +280,26 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin: 18px 0;
-      padding: 12px 14px;
+      margin: 14px 0;
+      padding: 10px 12px;
       background: var(--surface);
       border-radius: var(--border-radius);
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
     .toggle-container label {
-      font-size: clamp(14px, 3.8vw, 16px);
+      font-size: clamp(13px, 3.5vw, 15px);
       color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 48px;
-      height: 26px;
+      width: 44px;
+      height: 24px;
     }
 
     .switch input {
@@ -311,8 +323,8 @@
     .slider:before {
       position: absolute;
       content: "";
-      height: 20px;
-      width: 20px;
+      height: 18px;
+      width: 18px;
       left: 3px;
       bottom: 3px;
       background-color: white;
@@ -325,19 +337,19 @@
     }
 
     input:checked + .slider:before {
-      transform: translateX(22px);
+      transform: translateX(20px);
     }
 
     .question-container {
       background: var(--surface);
-      padding: 16px;
+      padding: 14px;
       border-radius: var(--border-radius);
-      margin: 12px 0;
+      margin: 10px 0;
       box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
     }
 
     #questionText {
-      font-size: clamp(15px, 4vw, 17px);
+      font-size: clamp(14px, 3.8vw, 16px);
       line-height: 1.4;
       text-align: center;
       color: var(--text-primary);
@@ -407,25 +419,25 @@
     /* Mobile-specific adjustments */
     @media (max-height: 700px) {
       #homeScreen h1 {
-        margin: 8px 0 16px;
+        margin: 16px 0 24px;
       }
       
-      .btn {
-        padding: 12px;
-        margin: 6px auto;
+      #homeScreen .btn {
+        padding: 16px;
+        margin: 10px auto;
       }
       
       .keypad {
-        gap: 8px;
-        margin: 12px 0;
+        gap: 6px;
+        margin: 10px 0;
       }
       
       .keypad button {
-        height: calc(var(--key-size) * 0.85);
+        height: calc(var(--key-size) * 0.9);
       }
       
       .question-container {
-        padding: 14px;
+        padding: 12px;
       }
     }
 
@@ -435,11 +447,11 @@
       }
       
       .level-grid {
-        gap: 6px;
+        gap: 5px;
       }
       
       .toggle-container {
-        padding: 10px 12px;
+        padding: 8px 10px;
       }
     }
   </style>
