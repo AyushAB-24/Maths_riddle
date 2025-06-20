@@ -3,12 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <title>Math Riddles Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     :root {
       --accent: #00e6e6;
       --bg-dark: #0a0a0a;
-      --font: 'Segoe UI', sans-serif;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --key-size: min(20vw, 80px);
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      box-sizing: border-box;
     }
 
     html, body {
@@ -18,6 +31,8 @@
       background: var(--bg-dark);
       color: white;
       height: 100%;
+      overflow: hidden;
+      touch-action: manipulation;
     }
 
     body {
@@ -30,9 +45,9 @@
       width: 100vw;
       height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
-      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom, 8vh);
       opacity: 0;
       animation: fadeIn 1s ease-out forwards;
       animation-delay: 2.5s;
@@ -47,111 +62,154 @@
       width: 100%;
       height: 100%;
       max-width: 500px;
-      padding: 30px 20px;
+      padding: 20px 15px;
       box-sizing: border-box;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .active {
       display: block;
     }
 
-    h1, h2 {
+    h1 {
+      font-size: clamp(32px, 8vw, 42px);
       color: var(--accent);
       text-align: center;
-    }
-
-    h1 {
-      font-size: 42px;
+      margin-bottom: 5vh;
       text-shadow: 0 0 12px var(--accent);
-      margin-bottom: 50px;
     }
 
     h2 {
-      font-size: 28px;
-      margin-bottom: 20px;
+      font-size: clamp(24px, 6vw, 28px);
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 15px;
     }
 
     .btn {
       background: var(--accent);
       color: #000;
       border: none;
-      padding: 16px;
-      font-size: 18px;
+      padding: 14px;
+      font-size: clamp(16px, 4vw, 18px);
       border-radius: 12px;
-      margin: 10px auto;
+      margin: 8px auto;
       display: block;
       width: 90%;
+      max-width: 300px;
       cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 230, 230, 0.3);
+      transition: transform 0.1s ease, background 0.3s ease;
+      touch-action: manipulation;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
     }
 
     .btn:hover {
       background: #00bdbd;
+      box-shadow: 0 4px 20px rgba(0, 230, 230, 0.5);
     }
 
     .keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 25px 0;
+      gap: 8px;
+      margin: 20px 0;
+      padding: 0 10px;
     }
 
     .keypad button {
-      padding: 20px;
-      font-size: 24px;
+      height: var(--key-size);
+      width: 100%;
+      font-size: clamp(20px, 6vw, 24px);
       background: #00bcd4;
       color: white;
       border: none;
       border-radius: 10px;
+      transition: transform 0.1s ease;
+      touch-action: manipulation;
     }
 
-    .answer-box, .result {
-      font-size: 22px;
+    .keypad button:active {
+      transform: scale(0.95);
+    }
+
+    .answer-box {
+      font-size: clamp(22px, 7vw, 26px);
+      color: #ffd54f;
+      margin: 15px;
+      min-height: 30px;
       text-align: center;
-      margin-top: 15px;
+      word-break: break-all;
     }
 
     .result {
-      color: #ffd54f;
+      font-size: clamp(16px, 4vw, 18px);
+      margin-top: 10px;
+      min-height: 25px;
+      text-align: center;
     }
 
     .level-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
+      gap: 8px;
+      margin: 15px 0;
+      padding: 0 10px;
     }
 
     .level-grid button {
-      padding: 14px;
+      padding: 12px 0;
       border-radius: 8px;
       background-color: #333;
       color: #fff;
+      border: 1px solid #444;
+      font-size: clamp(12px, 3vw, 14px);
+      transition: transform 0.1s ease;
+    }
+
+    .level-grid button:active {
+      transform: scale(0.95);
     }
 
     .level-grid button:disabled {
       opacity: 0.3;
-      cursor: not-allowed;
+      cursor: default;
     }
 
     .toggle-container {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      padding: 10px 0;
+      margin: 25px 0;
+      padding: 0 15px;
     }
 
     .toggle-container label {
-      font-size: 18px;
+      font-size: clamp(16px, 4vw, 18px);
     }
 
     input[type="checkbox"] {
-      transform: scale(1.5);
+      transform: scale(1.3);
     }
 
+    canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Splash Screen */
     #splash {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: var(--bg-dark);
+      background-color: var(--bg-dark);
       color: var(--accent);
       display: flex;
       align-items: center;
@@ -161,13 +219,8 @@
       animation: splashFade 2.5s ease-out forwards;
     }
 
-    @keyframes splashFade {
-      0%, 90% { opacity: 1; }
-      100% { opacity: 0; visibility: hidden; }
-    }
-
     .logo {
-      font-size: 64px;
+      font-size: clamp(48px, 15vw, 64px);
       animation: logoAnim 2s ease-in-out infinite;
     }
 
@@ -177,15 +230,44 @@
       60% { transform: scale(0.95) rotate(-10deg); }
       100% { transform: scale(1) rotate(0); }
     }
+
+    @keyframes splashFade {
+      0% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+
+    /* Mobile-specific adjustments */
+    @media (max-height: 600px) {
+      h1 {
+        margin-bottom: 3vh;
+      }
+      
+      .btn {
+        padding: 10px;
+        margin: 6px auto;
+      }
+      
+      .keypad {
+        gap: 6px;
+      }
+      
+      .keypad button {
+        height: calc(var(--key-size) * 0.8);
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Splash Screen -->
   <div id="splash">
     <div class="logo">🧠</div>
-    <div>Math Riddles</div>
+    <div style="margin-top: 10px; font-size: clamp(18px, 5vw, 24px);">Math Riddles</div>
   </div>
 
+  <!-- Main App Container -->
   <div class="container">
+    <!-- Home Screen -->
     <div id="homeScreen" class="screen active">
       <h1>🧠 Math Riddles</h1>
       <button class="btn" onclick="startGame()">▶ Play</button>
@@ -194,88 +276,149 @@
       <button class="btn" onclick="window.close()">❌ Quit</button>
     </div>
 
+    <!-- Settings Screen -->
     <div id="settingsScreen" class="screen">
       <h2>Settings</h2>
       <div class="toggle-container">
-        <label for="musicToggle">🎵 Music</label>
+        <label for="musicToggle">🎵 Background Music</label>
         <input type="checkbox" id="musicToggle" onchange="toggleMusic(this)">
       </div>
       <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
     </div>
 
+    <!-- Levels Screen -->
     <div id="levelsScreen" class="screen">
       <h2>Select Level</h2>
       <div class="level-grid" id="levelButtons"></div>
       <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
     </div>
 
+    <!-- Riddle Screen -->
     <div id="riddleScreen" class="screen">
       <h2 id="levelTitle">Level</h2>
-      <div id="questionText" style="text-align:center"></div>
+      <div id="questionText" style="text-align: center; padding: 0 10px;"></div>
       <div class="answer-box" id="answerBox"></div>
+
       <div class="keypad">
-        <button onclick="press(1)">1</button>
-        <button onclick="press(2)">2</button>
-        <button onclick="press(3)">3</button>
-        <button onclick="press(4)">4</button>
-        <button onclick="press(5)">5</button>
-        <button onclick="press(6)">6</button>
-        <button onclick="press(7)">7</button>
-        <button onclick="press(8)">8</button>
-        <button onclick="press(9)">9</button>
-        <button onclick="clearAnswer()">C</button>
-        <button onclick="press(0)">0</button>
-        <button onclick="submitAnswer()">✓</button>
+        <button ontouchstart="press(1)" onclick="press(1)">1</button>
+        <button ontouchstart="press(2)" onclick="press(2)">2</button>
+        <button ontouchstart="press(3)" onclick="press(3)">3</button>
+        <button ontouchstart="press(4)" onclick="press(4)">4</button>
+        <button ontouchstart="press(5)" onclick="press(5)">5</button>
+        <button ontouchstart="press(6)" onclick="press(6)">6</button>
+        <button ontouchstart="press(7)" onclick="press(7)">7</button>
+        <button ontouchstart="press(8)" onclick="press(8)">8</button>
+        <button ontouchstart="press(9)" onclick="press(9)">9</button>
+        <button ontouchstart="clearAnswer()" onclick="clearAnswer()">C</button>
+        <button ontouchstart="press(0)" onclick="press(0)">0</button>
+        <button ontouchstart="submitAnswer()" onclick="submitAnswer()">✓</button>
       </div>
+
       <div class="result" id="resultMsg"></div>
-      <button class="btn" onclick="showHint()">Hint</button>
-      <button class="btn" onclick="showSolution()">Solution</button>
-      <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
+
+      <button class="btn" ontouchstart="showHint()" onclick="showHint()">Hint</button>
+      <button class="btn" ontouchstart="showSolution()" onclick="showSolution()">Solution</button>
+      <button class="btn" ontouchstart="showScreen('homeScreen')" onclick="showScreen('homeScreen')">⬅ Back</button>
     </div>
   </div>
 
-  <audio id="bgMusic" src="bg-music.mp3" loop></audio>
+  <canvas id="confetti-canvas"></canvas>
+  <audio id="bgMusic" src="https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-668.mp3" loop></audio>
+  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-modern-click-box-check-1120.mp3"></audio>
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
 
   <script>
-    setTimeout(() => document.getElementById("splash").style.display = "none", 2500);
+    // Improved touch handling
+    document.addEventListener('touchstart', function() {}, {passive: true});
+    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, {passive: false});
+
+    setTimeout(() => {
+      document.getElementById("splash").style.display = "none";
+    }, 2500);
 
     const riddles = [
-      { question: "I am 2-digit. Reversed I am 27 more. Digits add to 9.", answer: "36", hint: "Reverse: 63", solution: "63 - 36 = 27" },
+      { question: "I am 2-digit. Reversed I am 27 more. Digits add to 9. What am I?", answer: "36", hint: "Reverse: 63", solution: "63 - 36 = 27" },
       { question: "Divide 30 by half and add 10.", answer: "70", hint: "Divide by 0.5", solution: "30 ÷ 0.5 + 10 = 70" },
       { question: "Smallest 3-digit Armstrong number?", answer: "153", hint: "1³+5³+3³", solution: "1+125+27=153" },
+      { question: "If 1=3, 2=3, 3=5, 4=4, 5=4, then 6=?", answer: "3", hint: "Count letters in number words", solution: "six has 3 letters" },
+      { question: "What comes next: 1, 11, 21, 1211, 111221, ...?", answer: "312211", hint: "Say the previous number", solution: "1, one 1, two 1s, one 2 one 1, etc." }
     ];
-
+    
+    // Generate additional riddles if needed
     while (riddles.length < 50) {
-      const n = riddles.length + 1;
+      let n = riddles.length + 1;
+      const operations = [
+        { op: '+', fn: (a,b) => a + b },
+        { op: '-', fn: (a,b) => a - b },
+        { op: '×', fn: (a,b) => a * b }
+      ];
+      const selected = operations[Math.floor(Math.random() * operations.length)];
+      const a = Math.floor(Math.random() * 10) + 1;
+      const b = Math.floor(Math.random() * 10) + 1;
       riddles.push({
-        question: `What is ${n} × ${n} + 1?`,
-        answer: (n * n + 1).toString(),
-        hint: "Square + 1",
-        solution: `${n} × ${n} + 1 = ${n * n + 1}`
+        question: `What is ${a} ${selected.op} ${b}?`,
+        answer: selected.fn(a,b).toString(),
+        hint: `Basic arithmetic operation`,
+        solution: `${a} ${selected.op} ${b} = ${selected.fn(a,b)}`
       });
     }
 
     let currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
     let solved = JSON.parse(localStorage.getItem("solvedLevels") || "[]");
     let userAnswer = "";
-
     const music = document.getElementById("bgMusic");
+    const click = document.getElementById("clickSound");
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
     const musicToggle = document.getElementById("musicToggle");
 
-    window.onload = () => {
-      music.volume = 0.3;
-      if (localStorage.getItem("music") !== "off") {
-        musicToggle.checked = true;
-        music.play().catch(() => {
-          document.addEventListener("click", () => music.play(), { once: true });
-        });
+    // Initialize audio context on first interaction
+    function initAudio() {
+      document.removeEventListener('click', initAudio);
+      document.removeEventListener('touchstart', initAudio);
+      
+      // iOS requires we create audio context after user interaction
+      try {
+        music.volume = 0.3;
+        click.volume = 0.6;
+        correctSound.volume = 0.5;
+        wrongSound.volume = 0.5;
+        
+        if (localStorage.getItem("music") !== "off") {
+          musicToggle.checked = true;
+          music.play().catch(e => console.log("Audio play error:", e));
+        } else {
+          musicToggle.checked = false;
+          music.pause();
+        }
+      } catch (e) {
+        console.log("Audio initialization error:", e);
       }
+    }
+
+    // Set up audio initialization on first interaction
+    document.addEventListener('click', initAudio, { once: true });
+    document.addEventListener('touchstart', initAudio, { once: true });
+
+    window.onload = () => {
       renderLevels();
+      // Handle Android back button
+      window.onpopstate = function() {
+        if (document.getElementById('homeScreen').classList.contains('active')) {
+          // If already on home screen, ask to exit
+          if (confirm('Do you want to exit the game?')) {
+            window.close();
+          }
+        } else {
+          showScreen('homeScreen');
+        }
+      };
     };
 
     function toggleMusic(checkbox) {
       if (checkbox.checked) {
-        music.play();
+        music.play().catch(e => console.log("Music play error:", e));
         localStorage.setItem("music", "on");
       } else {
         music.pause();
@@ -283,9 +426,16 @@
       }
     }
 
+    function playClick() { 
+      click.currentTime = 0;
+      click.play().catch(e => console.log("Click sound error:", e));
+    }
+
     function showScreen(id) {
+      history.pushState({screen: id}, '', '#'+id);
       document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
       document.getElementById(id).classList.add("active");
+      playClick();
     }
 
     function startGame() {
@@ -300,11 +450,13 @@
         btn.textContent = solved.includes(i + 1) ? `✅ ${i + 1}` : `🔒 ${i + 1}`;
         btn.disabled = !solved.includes(i + 1) && (i + 1 !== currentLevel);
         btn.onclick = () => loadLevel(i + 1);
+        btn.ontouchstart = () => loadLevel(i + 1);
         grid.appendChild(btn);
       });
     }
 
     function loadLevel(level) {
+      clearConfetti();
       const r = riddles[level - 1];
       currentLevel = level;
       userAnswer = "";
@@ -316,49 +468,109 @@
     }
 
     function press(n) {
+      playClick();
       userAnswer += n;
       document.getElementById("answerBox").textContent = userAnswer;
+      document.getElementById("resultMsg").textContent = "";
     }
 
     function clearAnswer() {
+      playClick();
       userAnswer = "";
       document.getElementById("answerBox").textContent = "";
+      document.getElementById("resultMsg").textContent = "";
     }
 
     function submitAnswer() {
       const r = riddles[currentLevel - 1];
       const msg = document.getElementById("resultMsg");
+      
       if (userAnswer === r.answer) {
         msg.textContent = "🎉 Correct!";
-        if (!solved.includes(currentLevel)) {
-          solved.push(currentLevel);
-          localStorage.setItem("solvedLevels", JSON.stringify(solved));
-        }
-        currentLevel++;
-        localStorage.setItem("currentLevel", currentLevel);
-        setTimeout(() => {
-          if (currentLevel <= riddles.length) loadLevel(currentLevel);
-          else alert("🎊 All levels completed!");
-        }, 1000);
+        msg.style.color = "#00e676";
+        correctSound.currentTime = 0;
+        correctSound.play().catch(e => console.log("Correct sound error:", e));
+        
+        fireConfetti(() => {
+          if (!solved.includes(currentLevel)) {
+            solved.push(currentLevel);
+            localStorage.setItem("solvedLevels", JSON.stringify(solved));
+          }
+          currentLevel++;
+          localStorage.setItem("currentLevel", currentLevel);
+          setTimeout(() => {
+            if (currentLevel <= riddles.length) loadLevel(currentLevel);
+            else {
+              alert("🎊 All levels completed!");
+              showScreen('homeScreen');
+            }
+          }, 1000);
+        });
       } else {
-        msg.textContent = "❌ Wrong!";
+        msg.textContent = "❌ Wrong! Try again";
+        msg.style.color = "#e53935";
+        wrongSound.currentTime = 0;
+        wrongSound.play().catch(e => console.log("Wrong sound error:", e));
         setTimeout(clearAnswer, 800);
       }
     }
 
     function showHint() {
+      playClick();
       alert("Hint: " + riddles[currentLevel - 1].hint);
     }
 
     function showSolution() {
+      playClick();
       alert("Solution: " + riddles[currentLevel - 1].solution);
     }
 
-    window.onpopstate = () => {
-      showScreen("homeScreen");
-      history.pushState(null, "", location.href);
-    };
-    history.pushState(null, "", location.href);
+    function fireConfetti(callback) {
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      
+      // More performance-friendly confetti
+      const pieces = Array.from({ length: 60 }, () => ({
+        x: Math.random() * canvas.width,
+        y: -10,
+        size: Math.random() * 8 + 4,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+        speed: Math.random() * 3 + 2,
+        rotation: Math.random() * 360,
+        rotationSpeed: Math.random() * 10 - 5
+      }));
+      
+      let frame = 0;
+      const anim = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          ctx.save();
+          ctx.translate(p.x + p.size/2, p.y + p.size/2);
+          ctx.rotate(p.rotation * Math.PI/180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+          ctx.restore();
+          
+          p.y += p.speed;
+          p.rotation += p.rotationSpeed;
+        });
+        frame++;
+        if (frame < 50) requestAnimationFrame(anim);
+        else {
+          clearConfetti();
+          if (callback) callback();
+        }
+      };
+      anim();
+    }
+
+    function clearConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
   </script>
 </body>
 </html>
