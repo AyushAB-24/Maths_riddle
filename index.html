@@ -23,8 +23,8 @@
       --text-secondary: #BDBDBD;
       --font-main: 'Poppins', sans-serif;
       --font-mono: 'Roboto Mono', monospace;
-      --key-size: min(18vw, 70px);
-      --border-radius: 14px;
+      --key-size: min(15vw, 60px); /* Reduced key size */
+      --border-radius: 12px; /* Slightly smaller radius */
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -183,18 +183,29 @@
       background: #333;
     }
 
+    /* Compact Riddle Screen Styles */
+    #riddleScreen {
+      justify-content: flex-start;
+      padding-top: 10px;
+    }
+
+    #riddleScreen h2 {
+      margin-bottom: 8px;
+      font-size: clamp(18px, 5vw, 22px);
+    }
+
     .keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 12px 0;
+      gap: 6px; /* Reduced gap */
+      margin: 8px 0; /* Reduced margin */
       padding: 0 8px;
     }
 
     .keypad button {
       height: var(--key-size);
       width: 100%;
-      font-size: clamp(16px, 4vw, 20px);
+      font-size: clamp(14px, 4vw, 18px); /* Smaller font */
       background: var(--surface);
       color: white;
       border: none;
@@ -215,10 +226,10 @@
     }
 
     .answer-box {
-      font-size: clamp(18px, 5vw, 22px); /* Smaller font size */
+      font-size: clamp(16px, 5vw, 20px); /* Smaller font */
       color: var(--secondary);
-      margin: 10px 8px;
-      min-height: 32px;
+      margin: 8px; /* Reduced margin */
+      min-height: 28px; /* Reduced height */
       text-align: center;
       font-family: var(--font-mono);
       font-weight: 500;
@@ -227,11 +238,11 @@
     }
 
     .result {
-      font-size: clamp(13px, 3.5vw, 15px); /* Smaller font size */
-      margin: 10px 0;
-      min-height: 20px;
+      font-size: clamp(12px, 3.5vw, 14px); /* Smaller font */
+      margin: 8px 0; /* Reduced margin */
+      min-height: 18px; /* Reduced height */
       text-align: center;
-      padding: 8px;
+      padding: 6px; /* Reduced padding */
       border-radius: var(--border-radius);
       background: rgba(0, 230, 118, 0.1);
       color: var(--secondary);
@@ -242,21 +253,37 @@
       color: var(--error);
     }
 
+    .question-container {
+      background: var(--surface);
+      padding: 12px; /* Reduced padding */
+      border-radius: var(--border-radius);
+      margin: 8px 0; /* Reduced margin */
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #questionText {
+      font-size: clamp(13px, 3.8vw, 15px); /* Smaller font */
+      line-height: 1.4;
+      text-align: center;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
     .level-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 8px; /* Increased gap */
-      margin: 16px 0; /* Increased margin */
+      gap: 8px;
+      margin: 16px 0;
       padding: 0 8px;
     }
 
     .level-grid button {
-      padding: 16px 0; /* Increased padding */
+      padding: 16px 0;
       border-radius: 8px;
       background-color: var(--surface);
       color: var(--text-primary);
       border: none;
-      font-size: clamp(16px, 4vw, 18px); /* Larger font size */
+      font-size: clamp(16px, 4vw, 18px);
       transition: var(--transition);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
@@ -338,21 +365,6 @@
 
     input:checked + .slider:before {
       transform: translateX(20px);
-    }
-
-    .question-container {
-      background: var(--surface);
-      padding: 14px;
-      border-radius: var(--border-radius);
-      margin: 10px 0;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    #questionText {
-      font-size: clamp(14px, 3.8vw, 16px); /* Smaller font size */
-      line-height: 1.4;
-      text-align: center;
-      color: var(--text-primary);
     }
 
     canvas {
