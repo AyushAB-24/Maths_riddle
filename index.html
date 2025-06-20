@@ -323,10 +323,10 @@
   </div>
 
   <canvas id="confetti-canvas"></canvas>
-  <audio id="bgMusic" loop></audio>
-  <audio id="clickSound"></audio>
-  <audio id="correctSound"></audio>
-  <audio id="wrongSound"></audio>
+  <audio id="bgMusic" src="bg-music.mp3" loop></audio>
+  <audio id="clickSound" src="click.mp3"></audio>
+  <audio id="correctSound" src="correct.mp3"></audio>
+  <audio id="wrongSound" src="wrong.mp3"></audio>
 
   <script>
     // Game data
@@ -404,12 +404,6 @@
 
     // Initialize the game
     function initGame() {
-      // Set audio sources (use your local files)
-      elements.audio.bgMusic.src = "bg-music.mp3";
-      elements.audio.click.src = "click.mp3";
-      elements.audio.correct.src = "correct.mp3";
-      elements.audio.wrong.src = "wrong.mp3";
-      
       // Set audio volumes
       elements.audio.bgMusic.volume = 0.3;
       elements.audio.click.volume = 0.6;
@@ -422,6 +416,13 @@
       // Initialize music toggle
       if (localStorage.getItem("music") !== "off") {
         elements.musicToggle.checked = true;
+        try {
+          elements.audio.bgMusic.play().catch(e => {
+            // Audio will be enabled after user interaction
+          });
+        } catch (e) {
+          console.error("Audio error:", e);
+        }
       } else {
         elements.musicToggle.checked = false;
         elements.audio.bgMusic.pause();
@@ -494,6 +495,19 @@
       
       // Handle Android back button
       window.addEventListener("popstate", handleBackButton);
+      
+      // Enable audio on first interaction
+      const enableAudio = () => {
+        document.removeEventListener("click", enableAudio);
+        document.removeEventListener("touchstart", enableAudio);
+        try {
+          elements.audio.bgMusic.play().catch(e => console.log("Audio play error:", e));
+        } catch (e) {
+          console.error("Audio error:", e);
+        }
+      };
+      document.addEventListener("click", enableAudio, { once: true });
+      document.addEventListener("touchstart", enableAudio, { once: true });
     }
 
     function handleBackButton() {
@@ -519,6 +533,16 @@
     function playClick() { 
       elements.audio.click.currentTime = 0;
       elements.audio.click.play().catch(e => console.log("Click sound error:", e));
+    }
+
+    function playCorrectSound() {
+      elements.audio.correct.currentTime = 0;
+      elements.audio.correct.play().catch(e => console.log("Correct sound error:", e));
+    }
+
+    function playWrongSound() {
+      elements.audio.wrong.currentTime = 0;
+      elements.audio.wrong.play().catch(e => console.log("Wrong sound error:", e));
     }
 
     function showScreen(id) {
@@ -577,8 +601,7 @@
       if (userAnswer === r.answer) {
         msg.textContent = "🎉 Correct!";
         msg.style.color = "#00e676";
-        elements.audio.correct.currentTime = 0;
-        elements.audio.correct.play().catch(e => console.log("Correct sound error:", e));
+        playCorrectSound();
         
         fireConfetti(() => {
           if (!solved.includes(currentLevel)) {
@@ -598,8 +621,7 @@
       } else {
         msg.textContent = "❌ Wrong! Try again";
         msg.style.color = "#e53935";
-        elements.audio.wrong.currentTime = 0;
-        elements.audio.wrong.play().catch(e => console.log("Wrong sound error:", e));
+        playWrongSound();
         setTimeout(clearAnswer, 800);
       }
     }
