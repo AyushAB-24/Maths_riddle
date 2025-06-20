@@ -270,10 +270,10 @@
     <!-- Home Screen -->
     <div id="homeScreen" class="screen active">
       <h1>🧠 Math Riddles</h1>
-      <button class="btn" onclick="startGame()">▶ Play</button>
-      <button class="btn" onclick="showScreen('levelsScreen')">📚 Levels</button>
-      <button class="btn" onclick="showScreen('settingsScreen')">⚙️ Settings</button>
-      <button class="btn" onclick="window.close()">❌ Quit</button>
+      <button class="btn" id="playBtn">▶ Play</button>
+      <button class="btn" id="levelsBtn">📚 Levels</button>
+      <button class="btn" id="settingsBtn">⚙️ Settings</button>
+      <button class="btn" id="quitBtn">❌ Quit</button>
     </div>
 
     <!-- Settings Screen -->
@@ -281,16 +281,16 @@
       <h2>Settings</h2>
       <div class="toggle-container">
         <label for="musicToggle">🎵 Background Music</label>
-        <input type="checkbox" id="musicToggle" onchange="toggleMusic(this)">
+        <input type="checkbox" id="musicToggle">
       </div>
-      <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
+      <button class="btn" id="backFromSettingsBtn">⬅ Back</button>
     </div>
 
     <!-- Levels Screen -->
     <div id="levelsScreen" class="screen">
       <h2>Select Level</h2>
       <div class="level-grid" id="levelButtons"></div>
-      <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
+      <button class="btn" id="backFromLevelsBtn">⬅ Back</button>
     </div>
 
     <!-- Riddle Screen -->
@@ -300,43 +300,36 @@
       <div class="answer-box" id="answerBox"></div>
 
       <div class="keypad">
-        <button ontouchstart="press(1)" onclick="press(1)">1</button>
-        <button ontouchstart="press(2)" onclick="press(2)">2</button>
-        <button ontouchstart="press(3)" onclick="press(3)">3</button>
-        <button ontouchstart="press(4)" onclick="press(4)">4</button>
-        <button ontouchstart="press(5)" onclick="press(5)">5</button>
-        <button ontouchstart="press(6)" onclick="press(6)">6</button>
-        <button ontouchstart="press(7)" onclick="press(7)">7</button>
-        <button ontouchstart="press(8)" onclick="press(8)">8</button>
-        <button ontouchstart="press(9)" onclick="press(9)">9</button>
-        <button ontouchstart="clearAnswer()" onclick="clearAnswer()">C</button>
-        <button ontouchstart="press(0)" onclick="press(0)">0</button>
-        <button ontouchstart="submitAnswer()" onclick="submitAnswer()">✓</button>
+        <button data-number="1">1</button>
+        <button data-number="2">2</button>
+        <button data-number="3">3</button>
+        <button data-number="4">4</button>
+        <button data-number="5">5</button>
+        <button data-number="6">6</button>
+        <button data-number="7">7</button>
+        <button data-number="8">8</button>
+        <button data-number="9">9</button>
+        <button id="clearBtn">C</button>
+        <button data-number="0">0</button>
+        <button id="submitBtn">✓</button>
       </div>
 
       <div class="result" id="resultMsg"></div>
 
-      <button class="btn" ontouchstart="showHint()" onclick="showHint()">Hint</button>
-      <button class="btn" ontouchstart="showSolution()" onclick="showSolution()">Solution</button>
-      <button class="btn" ontouchstart="showScreen('homeScreen')" onclick="showScreen('homeScreen')">⬅ Back</button>
+      <button class="btn" id="hintBtn">Hint</button>
+      <button class="btn" id="solutionBtn">Solution</button>
+      <button class="btn" id="backFromGameBtn">⬅ Back</button>
     </div>
   </div>
 
   <canvas id="confetti-canvas"></canvas>
-  <audio id="bgMusic" src="https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-668.mp3" loop></audio>
-  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-modern-click-box-check-1120.mp3"></audio>
-  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
-  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+  <audio id="bgMusic" loop></audio>
+  <audio id="clickSound"></audio>
+  <audio id="correctSound"></audio>
+  <audio id="wrongSound"></audio>
 
   <script>
-    // Improved touch handling
-    document.addEventListener('touchstart', function() {}, {passive: true});
-    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, {passive: false});
-
-    setTimeout(() => {
-      document.getElementById("splash").style.display = "none";
-    }, 2500);
-
+    // Game data
     const riddles = [
       { question: "I am 2-digit. Reversed I am 27 more. Digits add to 9. What am I?", answer: "36", hint: "Reverse: 63", solution: "63 - 36 = 27" },
       { question: "Divide 30 by half and add 10.", answer: "70", hint: "Divide by 0.5", solution: "30 ÷ 0.5 + 10 = 70" },
@@ -364,77 +357,174 @@
       });
     }
 
+    // Game state
     let currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
     let solved = JSON.parse(localStorage.getItem("solvedLevels") || "[]");
     let userAnswer = "";
-    const music = document.getElementById("bgMusic");
-    const click = document.getElementById("clickSound");
-    const correctSound = document.getElementById("correctSound");
-    const wrongSound = document.getElementById("wrongSound");
-    const musicToggle = document.getElementById("musicToggle");
+    let isProcessingInput = false; // Flag to prevent double input
 
-    // Initialize audio context on first interaction
-    function initAudio() {
-      document.removeEventListener('click', initAudio);
-      document.removeEventListener('touchstart', initAudio);
+    // DOM elements
+    const elements = {
+      screens: {
+        home: document.getElementById("homeScreen"),
+        settings: document.getElementById("settingsScreen"),
+        levels: document.getElementById("levelsScreen"),
+        riddle: document.getElementById("riddleScreen")
+      },
+      buttons: {
+        play: document.getElementById("playBtn"),
+        levels: document.getElementById("levelsBtn"),
+        settings: document.getElementById("settingsBtn"),
+        quit: document.getElementById("quitBtn"),
+        backFromSettings: document.getElementById("backFromSettingsBtn"),
+        backFromLevels: document.getElementById("backFromLevelsBtn"),
+        backFromGame: document.getElementById("backFromGameBtn"),
+        clear: document.getElementById("clearBtn"),
+        submit: document.getElementById("submitBtn"),
+        hint: document.getElementById("hintBtn"),
+        solution: document.getElementById("solutionBtn")
+      },
+      gameElements: {
+        levelTitle: document.getElementById("levelTitle"),
+        questionText: document.getElementById("questionText"),
+        answerBox: document.getElementById("answerBox"),
+        resultMsg: document.getElementById("resultMsg"),
+        levelButtons: document.getElementById("levelButtons")
+      },
+      audio: {
+        bgMusic: document.getElementById("bgMusic"),
+        click: document.getElementById("clickSound"),
+        correct: document.getElementById("correctSound"),
+        wrong: document.getElementById("wrongSound")
+      },
+      musicToggle: document.getElementById("musicToggle"),
+      splash: document.getElementById("splash"),
+      confettiCanvas: document.getElementById("confetti-canvas")
+    };
+
+    // Initialize the game
+    function initGame() {
+      // Set audio sources (use your local files)
+      elements.audio.bgMusic.src = "bg-music.mp3";
+      elements.audio.click.src = "click.mp3";
+      elements.audio.correct.src = "correct.mp3";
+      elements.audio.wrong.src = "wrong.mp3";
       
-      // iOS requires we create audio context after user interaction
-      try {
-        music.volume = 0.3;
-        click.volume = 0.6;
-        correctSound.volume = 0.5;
-        wrongSound.volume = 0.5;
+      // Set audio volumes
+      elements.audio.bgMusic.volume = 0.3;
+      elements.audio.click.volume = 0.6;
+      elements.audio.correct.volume = 0.5;
+      elements.audio.wrong.volume = 0.5;
+
+      // Set up event listeners
+      setupEventListeners();
+      
+      // Initialize music toggle
+      if (localStorage.getItem("music") !== "off") {
+        elements.musicToggle.checked = true;
+      } else {
+        elements.musicToggle.checked = false;
+        elements.audio.bgMusic.pause();
+      }
+
+      // Render levels
+      renderLevels();
+
+      // Handle splash screen
+      setTimeout(() => {
+        elements.splash.style.display = "none";
+      }, 2500);
+    }
+
+    // Set up all event listeners
+    function setupEventListeners() {
+      // Navigation buttons
+      elements.buttons.play.addEventListener("click", startGame);
+      elements.buttons.levels.addEventListener("click", () => showScreen("levelsScreen"));
+      elements.buttons.settings.addEventListener("click", () => showScreen("settingsScreen"));
+      elements.buttons.quit.addEventListener("click", () => window.close());
+      elements.buttons.backFromSettings.addEventListener("click", () => showScreen("homeScreen"));
+      elements.buttons.backFromLevels.addEventListener("click", () => showScreen("homeScreen"));
+      elements.buttons.backFromGame.addEventListener("click", () => showScreen("homeScreen"));
+      
+      // Game buttons
+      elements.buttons.clear.addEventListener("click", clearAnswer);
+      elements.buttons.submit.addEventListener("click", submitAnswer);
+      elements.buttons.hint.addEventListener("click", showHint);
+      elements.buttons.solution.addEventListener("click", showSolution);
+      
+      // Keypad buttons - using event delegation to prevent double input
+      document.querySelector(".keypad").addEventListener("click", (e) => {
+        if (isProcessingInput) return;
+        isProcessingInput = true;
         
-        if (localStorage.getItem("music") !== "off") {
-          musicToggle.checked = true;
-          music.play().catch(e => console.log("Audio play error:", e));
-        } else {
-          musicToggle.checked = false;
-          music.pause();
+        const button = e.target.closest("button");
+        if (button && button.dataset.number) {
+          press(parseInt(button.dataset.number));
         }
-      } catch (e) {
-        console.log("Audio initialization error:", e);
+        
+        setTimeout(() => { isProcessingInput = false; }, 100);
+      });
+      
+      // Touch events for keypad - using event delegation
+      document.querySelector(".keypad").addEventListener("touchstart", (e) => {
+        if (isProcessingInput) return;
+        isProcessingInput = true;
+        
+        const button = e.target.closest("button");
+        if (button) {
+          if (button.dataset.number) {
+            press(parseInt(button.dataset.number));
+          }
+          button.classList.add("active");
+        }
+        
+        setTimeout(() => { isProcessingInput = false; }, 100);
+      }, { passive: true });
+      
+      document.querySelector(".keypad").addEventListener("touchend", (e) => {
+        const button = e.target.closest("button");
+        if (button) {
+          button.classList.remove("active");
+        }
+      }, { passive: true });
+      
+      // Music toggle
+      elements.musicToggle.addEventListener("change", toggleMusic);
+      
+      // Handle Android back button
+      window.addEventListener("popstate", handleBackButton);
+    }
+
+    function handleBackButton() {
+      if (elements.screens.home.classList.contains("active")) {
+        if (confirm("Do you want to exit the game?")) {
+          window.close();
+        }
+      } else {
+        showScreen("homeScreen");
       }
     }
 
-    // Set up audio initialization on first interaction
-    document.addEventListener('click', initAudio, { once: true });
-    document.addEventListener('touchstart', initAudio, { once: true });
-
-    window.onload = () => {
-      renderLevels();
-      // Handle Android back button
-      window.onpopstate = function() {
-        if (document.getElementById('homeScreen').classList.contains('active')) {
-          // If already on home screen, ask to exit
-          if (confirm('Do you want to exit the game?')) {
-            window.close();
-          }
-        } else {
-          showScreen('homeScreen');
-        }
-      };
-    };
-
-    function toggleMusic(checkbox) {
-      if (checkbox.checked) {
-        music.play().catch(e => console.log("Music play error:", e));
+    function toggleMusic() {
+      if (elements.musicToggle.checked) {
+        elements.audio.bgMusic.play().catch(e => console.log("Music play error:", e));
         localStorage.setItem("music", "on");
       } else {
-        music.pause();
+        elements.audio.bgMusic.pause();
         localStorage.setItem("music", "off");
       }
     }
 
     function playClick() { 
-      click.currentTime = 0;
-      click.play().catch(e => console.log("Click sound error:", e));
+      elements.audio.click.currentTime = 0;
+      elements.audio.click.play().catch(e => console.log("Click sound error:", e));
     }
 
     function showScreen(id) {
-      history.pushState({screen: id}, '', '#'+id);
-      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
+      history.pushState({screen: id}, "", "#"+id);
+      Object.values(elements.screens).forEach(s => s.classList.remove("active"));
+      elements.screens[id.replace("Screen", "")].classList.add("active");
       playClick();
     }
 
@@ -443,14 +533,13 @@
     }
 
     function renderLevels() {
-      const grid = document.getElementById("levelButtons");
+      const grid = elements.gameElements.levelButtons;
       grid.innerHTML = "";
       riddles.forEach((_, i) => {
         const btn = document.createElement("button");
         btn.textContent = solved.includes(i + 1) ? `✅ ${i + 1}` : `🔒 ${i + 1}`;
         btn.disabled = !solved.includes(i + 1) && (i + 1 !== currentLevel);
-        btn.onclick = () => loadLevel(i + 1);
-        btn.ontouchstart = () => loadLevel(i + 1);
+        btn.addEventListener("click", () => loadLevel(i + 1));
         grid.appendChild(btn);
       });
     }
@@ -460,36 +549,36 @@
       const r = riddles[level - 1];
       currentLevel = level;
       userAnswer = "";
-      document.getElementById("levelTitle").textContent = `Level ${level}`;
-      document.getElementById("questionText").textContent = r.question;
-      document.getElementById("answerBox").textContent = "";
-      document.getElementById("resultMsg").textContent = "";
+      elements.gameElements.levelTitle.textContent = `Level ${level}`;
+      elements.gameElements.questionText.textContent = r.question;
+      elements.gameElements.answerBox.textContent = "";
+      elements.gameElements.resultMsg.textContent = "";
       showScreen("riddleScreen");
     }
 
     function press(n) {
       playClick();
       userAnswer += n;
-      document.getElementById("answerBox").textContent = userAnswer;
-      document.getElementById("resultMsg").textContent = "";
+      elements.gameElements.answerBox.textContent = userAnswer;
+      elements.gameElements.resultMsg.textContent = "";
     }
 
     function clearAnswer() {
       playClick();
       userAnswer = "";
-      document.getElementById("answerBox").textContent = "";
-      document.getElementById("resultMsg").textContent = "";
+      elements.gameElements.answerBox.textContent = "";
+      elements.gameElements.resultMsg.textContent = "";
     }
 
     function submitAnswer() {
       const r = riddles[currentLevel - 1];
-      const msg = document.getElementById("resultMsg");
+      const msg = elements.gameElements.resultMsg;
       
       if (userAnswer === r.answer) {
         msg.textContent = "🎉 Correct!";
         msg.style.color = "#00e676";
-        correctSound.currentTime = 0;
-        correctSound.play().catch(e => console.log("Correct sound error:", e));
+        elements.audio.correct.currentTime = 0;
+        elements.audio.correct.play().catch(e => console.log("Correct sound error:", e));
         
         fireConfetti(() => {
           if (!solved.includes(currentLevel)) {
@@ -509,8 +598,8 @@
       } else {
         msg.textContent = "❌ Wrong! Try again";
         msg.style.color = "#e53935";
-        wrongSound.currentTime = 0;
-        wrongSound.play().catch(e => console.log("Wrong sound error:", e));
+        elements.audio.wrong.currentTime = 0;
+        elements.audio.wrong.play().catch(e => console.log("Wrong sound error:", e));
         setTimeout(clearAnswer, 800);
       }
     }
@@ -526,12 +615,11 @@
     }
 
     function fireConfetti(callback) {
-      const canvas = document.getElementById("confetti-canvas");
+      const canvas = elements.confettiCanvas;
       const ctx = canvas.getContext("2d");
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       
-      // More performance-friendly confetti
       const pieces = Array.from({ length: 60 }, () => ({
         x: Math.random() * canvas.width,
         y: -10,
@@ -567,10 +655,12 @@
     }
 
     function clearConfetti() {
-      const canvas = document.getElementById("confetti-canvas");
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const ctx = elements.confettiCanvas.getContext("2d");
+      ctx.clearRect(0, 0, elements.confettiCanvas.width, elements.confettiCanvas.height);
     }
+
+    // Initialize the game when DOM is loaded
+    document.addEventListener("DOMContentLoaded", initGame);
   </script>
 </body>
 </html>
