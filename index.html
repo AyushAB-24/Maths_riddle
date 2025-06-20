@@ -18,7 +18,6 @@
       background: var(--bg-dark);
       color: white;
       height: 100%;
-      overflow: hidden;
     }
 
     body {
@@ -31,9 +30,9 @@
       width: 100vw;
       height: 100vh;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
-      padding-bottom: 8vh;
+      flex-direction: column;
       opacity: 0;
       animation: fadeIn 1s ease-out forwards;
       animation-delay: 2.5s;
@@ -57,18 +56,19 @@
       display: block;
     }
 
-    h1 {
-      font-size: 42px;
+    h1, h2 {
       color: var(--accent);
       text-align: center;
-      margin-bottom: 50px;
+    }
+
+    h1 {
+      font-size: 42px;
       text-shadow: 0 0 12px var(--accent);
+      margin-bottom: 50px;
     }
 
     h2 {
       font-size: 28px;
-      color: var(--accent);
-      text-align: center;
       margin-bottom: 20px;
     }
 
@@ -83,13 +83,10 @@
       display: block;
       width: 90%;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 230, 230, 0.3);
-      transition: 0.3s ease;
     }
 
     .btn:hover {
       background: #00bdbd;
-      box-shadow: 0 4px 20px rgba(0, 230, 230, 0.5);
     }
 
     .keypad {
@@ -108,26 +105,20 @@
       border-radius: 10px;
     }
 
-    .answer-box {
-      font-size: 26px;
-      color: #ffd54f;
-      margin: 15px;
-      min-height: 30px;
+    .answer-box, .result {
+      font-size: 22px;
       text-align: center;
+      margin-top: 15px;
     }
 
     .result {
-      font-size: 18px;
-      margin-top: 10px;
-      min-height: 25px;
-      text-align: center;
+      color: #ffd54f;
     }
 
     .level-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 10px;
-      margin: 20px 0;
     }
 
     .level-grid button {
@@ -135,20 +126,17 @@
       border-radius: 8px;
       background-color: #333;
       color: #fff;
-      border: 1px solid #444;
     }
 
     .level-grid button:disabled {
       opacity: 0.3;
-      cursor: default;
+      cursor: not-allowed;
     }
 
     .toggle-container {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin: 30px 0;
-      padding: 0 10px;
+      padding: 10px 0;
     }
 
     .toggle-container label {
@@ -159,20 +147,11 @@
       transform: scale(1.5);
     }
 
-    canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      pointer-events: none;
-      z-index: 1000;
-    }
-
-    /* Splash Screen */
     #splash {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background-color: var(--bg-dark);
+      background: var(--bg-dark);
       color: var(--accent);
       display: flex;
       align-items: center;
@@ -180,6 +159,11 @@
       flex-direction: column;
       z-index: 2000;
       animation: splashFade 2.5s ease-out forwards;
+    }
+
+    @keyframes splashFade {
+      0%, 90% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
     }
 
     .logo {
@@ -193,24 +177,15 @@
       60% { transform: scale(0.95) rotate(-10deg); }
       100% { transform: scale(1) rotate(0); }
     }
-
-    @keyframes splashFade {
-      0% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { opacity: 0; visibility: hidden; }
-    }
   </style>
 </head>
 <body>
-  <!-- Splash Screen -->
   <div id="splash">
     <div class="logo">🧠</div>
-    <div style="margin-top: 10px;">Math Riddles</div>
+    <div>Math Riddles</div>
   </div>
 
-  <!-- Main App Container -->
   <div class="container">
-    <!-- Home Screen -->
     <div id="homeScreen" class="screen active">
       <h1>🧠 Math Riddles</h1>
       <button class="btn" onclick="startGame()">▶ Play</button>
@@ -219,29 +194,25 @@
       <button class="btn" onclick="window.close()">❌ Quit</button>
     </div>
 
-    <!-- Settings Screen -->
     <div id="settingsScreen" class="screen">
       <h2>Settings</h2>
       <div class="toggle-container">
-        <label for="musicToggle">🎵 Background Music</label>
+        <label for="musicToggle">🎵 Music</label>
         <input type="checkbox" id="musicToggle" onchange="toggleMusic(this)">
       </div>
       <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
     </div>
 
-    <!-- Levels Screen -->
     <div id="levelsScreen" class="screen">
       <h2>Select Level</h2>
       <div class="level-grid" id="levelButtons"></div>
       <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
     </div>
 
-    <!-- Riddle Screen -->
     <div id="riddleScreen" class="screen">
       <h2 id="levelTitle">Level</h2>
-      <div id="questionText" style="text-align: center;"></div>
+      <div id="questionText" style="text-align:center"></div>
       <div class="answer-box" id="answerBox"></div>
-
       <div class="keypad">
         <button onclick="press(1)">1</button>
         <button onclick="press(2)">2</button>
@@ -256,35 +227,30 @@
         <button onclick="press(0)">0</button>
         <button onclick="submitAnswer()">✓</button>
       </div>
-
       <div class="result" id="resultMsg"></div>
-
       <button class="btn" onclick="showHint()">Hint</button>
       <button class="btn" onclick="showSolution()">Solution</button>
       <button class="btn" onclick="showScreen('homeScreen')">⬅ Back</button>
     </div>
   </div>
 
-  <canvas id="confetti-canvas"></canvas>
   <audio id="bgMusic" src="bg-music.mp3" loop></audio>
-  <audio id="clickSound" src="click.mp3"></audio>
 
   <script>
-    setTimeout(() => {
-      document.getElementById("splash").style.display = "none";
-    }, 2500);
+    setTimeout(() => document.getElementById("splash").style.display = "none", 2500);
 
     const riddles = [
-      { question: "I am 2-digit. Reversed I am 27 more. Digits add to 9. What am I?", answer: "36", hint: "Reverse: 63", solution: "63 - 36 = 27" },
+      { question: "I am 2-digit. Reversed I am 27 more. Digits add to 9.", answer: "36", hint: "Reverse: 63", solution: "63 - 36 = 27" },
       { question: "Divide 30 by half and add 10.", answer: "70", hint: "Divide by 0.5", solution: "30 ÷ 0.5 + 10 = 70" },
-      { question: "Smallest 3-digit Armstrong number?", answer: "153", hint: "1³+5³+3³", solution: "1+125+27=153" }
+      { question: "Smallest 3-digit Armstrong number?", answer: "153", hint: "1³+5³+3³", solution: "1+125+27=153" },
     ];
+
     while (riddles.length < 50) {
-      let n = riddles.length + 1;
+      const n = riddles.length + 1;
       riddles.push({
         question: `What is ${n} × ${n} + 1?`,
         answer: (n * n + 1).toString(),
-        hint: `Square + 1`,
+        hint: "Square + 1",
         solution: `${n} × ${n} + 1 = ${n * n + 1}`
       });
     }
@@ -292,37 +258,30 @@
     let currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
     let solved = JSON.parse(localStorage.getItem("solvedLevels") || "[]");
     let userAnswer = "";
+
     const music = document.getElementById("bgMusic");
-    const click = document.getElementById("clickSound");
     const musicToggle = document.getElementById("musicToggle");
 
     window.onload = () => {
-      try {
-        music.volume = 0.4;
-        if (localStorage.getItem("music") !== "off") {
-          musicToggle.checked = true;
-          music.play().catch(() => {
-            document.addEventListener("click", () => music.play(), { once: true });
-          });
-        } else {
-          musicToggle.checked = false;
-          music.pause();
-        }
-      } catch {}
+      music.volume = 0.3;
+      if (localStorage.getItem("music") !== "off") {
+        musicToggle.checked = true;
+        music.play().catch(() => {
+          document.addEventListener("click", () => music.play(), { once: true });
+        });
+      }
       renderLevels();
     };
 
     function toggleMusic(checkbox) {
       if (checkbox.checked) {
-        music.play().catch(() => {});
+        music.play();
         localStorage.setItem("music", "on");
       } else {
         music.pause();
         localStorage.setItem("music", "off");
       }
     }
-
-    function playClick() { click.play(); }
 
     function showScreen(id) {
       document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -346,7 +305,6 @@
     }
 
     function loadLevel(level) {
-      clearConfetti();
       const r = riddles[level - 1];
       currentLevel = level;
       userAnswer = "";
@@ -358,17 +316,13 @@
     }
 
     function press(n) {
-      playClick();
       userAnswer += n;
       document.getElementById("answerBox").textContent = userAnswer;
-      document.getElementById("resultMsg").textContent = "";
     }
 
     function clearAnswer() {
-      playClick();
       userAnswer = "";
       document.getElementById("answerBox").textContent = "";
-      document.getElementById("resultMsg").textContent = "";
     }
 
     function submitAnswer() {
@@ -376,68 +330,35 @@
       const msg = document.getElementById("resultMsg");
       if (userAnswer === r.answer) {
         msg.textContent = "🎉 Correct!";
-        msg.style.color = "#00e676";
-        fireConfetti(() => {
-          if (!solved.includes(currentLevel)) {
-            solved.push(currentLevel);
-            localStorage.setItem("solvedLevels", JSON.stringify(solved));
-          }
-          currentLevel++;
-          localStorage.setItem("currentLevel", currentLevel);
-          setTimeout(() => {
-            if (currentLevel <= riddles.length) loadLevel(currentLevel);
-            else alert("🎊 All levels completed!");
-          }, 1000);
-        });
+        if (!solved.includes(currentLevel)) {
+          solved.push(currentLevel);
+          localStorage.setItem("solvedLevels", JSON.stringify(solved));
+        }
+        currentLevel++;
+        localStorage.setItem("currentLevel", currentLevel);
+        setTimeout(() => {
+          if (currentLevel <= riddles.length) loadLevel(currentLevel);
+          else alert("🎊 All levels completed!");
+        }, 1000);
       } else {
         msg.textContent = "❌ Wrong!";
-        msg.style.color = "#e53935";
         setTimeout(clearAnswer, 800);
       }
     }
 
     function showHint() {
-      alert("Hint: " + riddles[currentLevel - 1].hint + "\n(Ad would show here)");
+      alert("Hint: " + riddles[currentLevel - 1].hint);
     }
 
     function showSolution() {
-      alert("Solution: " + riddles[currentLevel - 1].solution + "\n(Ad would show here)");
+      alert("Solution: " + riddles[currentLevel - 1].solution);
     }
 
-    function fireConfetti(callback) {
-      const canvas = document.getElementById("confetti-canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      const pieces = Array.from({ length: 100 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 10 + 5,
-        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-        speed: Math.random() * 3 + 2
-      }));
-      let frame = 0;
-      const anim = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pieces.forEach(p => {
-          ctx.fillStyle = p.color;
-          ctx.fillRect(p.x, p.y += p.speed, p.size, p.size);
-        });
-        frame++;
-        if (frame < 60) requestAnimationFrame(anim);
-        else {
-          clearConfetti();
-          if (callback) callback();
-        }
-      };
-      anim();
-    }
-
-    function clearConfetti() {
-      const canvas = document.getElementById("confetti-canvas");
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    window.onpopstate = () => {
+      showScreen("homeScreen");
+      history.pushState(null, "", location.href);
+    };
+    history.pushState(null, "", location.href);
   </script>
 </body>
 </html>
