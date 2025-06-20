@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Math Riddles Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -184,7 +184,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin: 25px 0;
+      margin: 20px 0;
       padding: 0 15px;
     }
 
@@ -255,6 +255,10 @@
       .keypad button {
         height: calc(var(--key-size) * 0.8);
       }
+      
+      .toggle-container {
+        margin: 15px 0;
+      }
     }
   </style>
 </head>
@@ -282,6 +286,10 @@
       <div class="toggle-container">
         <label for="musicToggle">🎵 Background Music</label>
         <input type="checkbox" id="musicToggle">
+      </div>
+      <div class="toggle-container">
+        <label for="sfxToggle">🔊 Sound Effects</label>
+        <input type="checkbox" id="sfxToggle">
       </div>
       <button class="btn" id="backFromSettingsBtn">⬅ Back</button>
     </div>
@@ -323,10 +331,17 @@
   </div>
 
   <canvas id="confetti-canvas"></canvas>
+  
+  <!-- Audio Elements -->
   <audio id="bgMusic" src="bg-music.mp3" loop></audio>
   <audio id="clickSound" src="click.mp3"></audio>
-  <audio id="correctSound" src="correct.mp3"></audio>
-  <audio id="wrongSound" src="wrong.mp3"></audio>
+  <audio id="correctSound" src="correct-answer.mp3"></audio>
+  <audio id="wrongSound" src="wrong-answer.mp3"></audio>
+  <audio id="levelCompleteSound" src="level-complete.mp3"></audio>
+  <audio id="hintSound" src="hint.mp3"></audio>
+  <audio id="solutionSound" src="solution.mp3"></audio>
+  <audio id="screenTransitionSound" src="transition.mp3"></audio>
+  <audio id="buttonHoverSound" src="hover.mp3"></audio>
 
   <script>
     // Game data
@@ -338,7 +353,7 @@
       { question: "What comes next: 1, 11, 21, 1211, 111221, ...?", answer: "312211", hint: "Say the previous number", solution: "1, one 1, two 1s, one 2 one 1, etc." }
     ];
     
-    // Generate additional riddles if needed
+    // Generate additional riddles
     while (riddles.length < 50) {
       let n = riddles.length + 1;
       const operations = [
@@ -361,7 +376,7 @@
     let currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
     let solved = JSON.parse(localStorage.getItem("solvedLevels") || "[]");
     let userAnswer = "";
-    let isProcessingInput = false; // Flag to prevent double input
+    let isProcessingInput = false;
 
     // DOM elements
     const elements = {
@@ -395,9 +410,17 @@
         bgMusic: document.getElementById("bgMusic"),
         click: document.getElementById("clickSound"),
         correct: document.getElementById("correctSound"),
-        wrong: document.getElementById("wrongSound")
+        wrong: document.getElementById("wrongSound"),
+        levelComplete: document.getElementById("levelCompleteSound"),
+        hint: document.getElementById("hintSound"),
+        solution: document.getElementById("solutionSound"),
+        screenTransition: document.getElementById("screenTransitionSound"),
+        buttonHover: document.getElementById("buttonHoverSound")
       },
-      musicToggle: document.getElementById("musicToggle"),
+      toggles: {
+        music: document.getElementById("musicToggle"),
+        sfx: document.getElementById("sfxToggle")
+      },
       splash: document.getElementById("splash"),
       confettiCanvas: document.getElementById("confetti-canvas")
     };
@@ -409,25 +432,29 @@
       elements.audio.click.volume = 0.6;
       elements.audio.correct.volume = 0.5;
       elements.audio.wrong.volume = 0.5;
+      elements.audio.levelComplete.volume = 0.6;
+      elements.audio.hint.volume = 0.5;
+      elements.audio.solution.volume = 0.5;
+      elements.audio.screenTransition.volume = 0.4;
+      elements.audio.buttonHover.volume = 0.3;
+
+      // Initialize toggle states from localStorage
+      if (localStorage.getItem("music") !== "off") {
+        elements.toggles.music.checked = true;
+      } else {
+        elements.toggles.music.checked = false;
+        elements.audio.bgMusic.pause();
+      }
+
+      if (localStorage.getItem("sfx") !== "off") {
+        elements.toggles.sfx.checked = true;
+      } else {
+        elements.toggles.sfx.checked = false;
+      }
 
       // Set up event listeners
       setupEventListeners();
       
-      // Initialize music toggle
-      if (localStorage.getItem("music") !== "off") {
-        elements.musicToggle.checked = true;
-        try {
-          elements.audio.bgMusic.play().catch(e => {
-            // Audio will be enabled after user interaction
-          });
-        } catch (e) {
-          console.error("Audio error:", e);
-        }
-      } else {
-        elements.musicToggle.checked = false;
-        elements.audio.bgMusic.pause();
-      }
-
       // Render levels
       renderLevels();
 
@@ -454,7 +481,7 @@
       elements.buttons.hint.addEventListener("click", showHint);
       elements.buttons.solution.addEventListener("click", showSolution);
       
-      // Keypad buttons - using event delegation to prevent double input
+      // Keypad buttons - using event delegation
       document.querySelector(".keypad").addEventListener("click", (e) => {
         if (isProcessingInput) return;
         isProcessingInput = true;
@@ -467,7 +494,7 @@
         setTimeout(() => { isProcessingInput = false; }, 100);
       });
       
-      // Touch events for keypad - using event delegation
+      // Touch events for keypad
       document.querySelector(".keypad").addEventListener("touchstart", (e) => {
         if (isProcessingInput) return;
         isProcessingInput = true;
@@ -490,8 +517,14 @@
         }
       }, { passive: true });
       
-      // Music toggle
-      elements.musicToggle.addEventListener("change", toggleMusic);
+      // Button hover effects
+      document.querySelectorAll(".btn").forEach(btn => {
+        btn.addEventListener("mouseenter", () => playSound(elements.audio.buttonHover));
+      });
+      
+      // Toggle switches
+      elements.toggles.music.addEventListener("change", toggleMusic);
+      elements.toggles.sfx.addEventListener("change", toggleSFX);
       
       // Handle Android back button
       window.addEventListener("popstate", handleBackButton);
@@ -501,7 +534,9 @@
         document.removeEventListener("click", enableAudio);
         document.removeEventListener("touchstart", enableAudio);
         try {
-          elements.audio.bgMusic.play().catch(e => console.log("Audio play error:", e));
+          if (elements.toggles.music.checked) {
+            elements.audio.bgMusic.play().catch(e => console.log("Audio play error:", e));
+          }
         } catch (e) {
           console.error("Audio error:", e);
         }
@@ -521,7 +556,7 @@
     }
 
     function toggleMusic() {
-      if (elements.musicToggle.checked) {
+      if (elements.toggles.music.checked) {
         elements.audio.bgMusic.play().catch(e => console.log("Music play error:", e));
         localStorage.setItem("music", "on");
       } else {
@@ -530,22 +565,51 @@
       }
     }
 
-    function playClick() { 
-      elements.audio.click.currentTime = 0;
-      elements.audio.click.play().catch(e => console.log("Click sound error:", e));
+    function toggleSFX() {
+      if (elements.toggles.sfx.checked) {
+        localStorage.setItem("sfx", "on");
+      } else {
+        localStorage.setItem("sfx", "off");
+      }
+    }
+
+    function playSound(sound) {
+      if (elements.toggles.sfx.checked && sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Sound error:", e));
+      }
+    }
+
+    function playClick() {
+      playSound(elements.audio.click);
     }
 
     function playCorrectSound() {
-      elements.audio.correct.currentTime = 0;
-      elements.audio.correct.play().catch(e => console.log("Correct sound error:", e));
+      playSound(elements.audio.correct);
     }
 
     function playWrongSound() {
-      elements.audio.wrong.currentTime = 0;
-      elements.audio.wrong.play().catch(e => console.log("Wrong sound error:", e));
+      playSound(elements.audio.wrong);
+    }
+
+    function playLevelCompleteSound() {
+      playSound(elements.audio.levelComplete);
+    }
+
+    function playHintSound() {
+      playSound(elements.audio.hint);
+    }
+
+    function playSolutionSound() {
+      playSound(elements.audio.solution);
+    }
+
+    function playScreenTransitionSound() {
+      playSound(elements.audio.screenTransition);
     }
 
     function showScreen(id) {
+      playScreenTransitionSound();
       history.pushState({screen: id}, "", "#"+id);
       Object.values(elements.screens).forEach(s => s.classList.remove("active"));
       elements.screens[id.replace("Screen", "")].classList.add("active");
@@ -610,6 +674,7 @@
           }
           currentLevel++;
           localStorage.setItem("currentLevel", currentLevel);
+          playLevelCompleteSound();
           setTimeout(() => {
             if (currentLevel <= riddles.length) loadLevel(currentLevel);
             else {
@@ -627,12 +692,12 @@
     }
 
     function showHint() {
-      playClick();
+      playHintSound();
       alert("Hint: " + riddles[currentLevel - 1].hint);
     }
 
     function showSolution() {
-      playClick();
+      playSolutionSound();
       alert("Solution: " + riddles[currentLevel - 1].solution);
     }
 
