@@ -23,8 +23,8 @@
       --text-secondary: #BDBDBD;
       --font-main: 'Poppins', sans-serif;
       --font-mono: 'Roboto Mono', monospace;
-      --key-size: min(22vw, 90px);
-      --border-radius: 16px;
+      --key-size: min(20vw, 80px);
+      --border-radius: 14px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -60,8 +60,8 @@
       align-items: center;
       justify-content: center;
       opacity: 0;
-      animation: fadeIn 1s ease-out forwards;
-      animation-delay: 1s;
+      animation: fadeIn 0.8s ease-out forwards;
+      animation-delay: 0.8s;
       padding-bottom: env(safe-area-inset-bottom, 0);
     }
 
@@ -74,66 +74,50 @@
       width: 100%;
       height: 100%;
       max-width: 500px;
-      padding: 20px;
+      padding: 16px;
       box-sizing: border-box;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       background: var(--bg-dark);
       position: relative;
-    }
-
-    .screen::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 12px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.2), transparent);
-      z-index: 10;
+      flex-direction: column;
     }
 
     .active {
       display: flex;
-      flex-direction: column;
     }
 
-    h1 {
-      font-size: clamp(36px, 8vw, 48px);
+    /* Updated font sizes */
+    #homeScreen h1 {
+      font-size: clamp(36px, 10vw, 48px);
       color: var(--primary-light);
       text-align: center;
-      margin: 20px 0 30px;
-      font-weight: 700;
-      text-shadow: 0 0 16px rgba(124, 77, 255, 0.4);
-      animation: pulse 2s infinite alternate;
+      margin: 12px 0 20px;
+      font-weight: 600;
+      text-shadow: 0 0 12px rgba(124, 77, 255, 0.4);
     }
 
     h2 {
-      font-size: clamp(26px, 6vw, 32px);
+      font-size: clamp(20px, 5vw, 24px);
       color: var(--primary-light);
       text-align: center;
-      margin: 0 0 25px;
+      margin: 0 0 16px;
       font-weight: 600;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 0.9; }
-      100% { opacity: 1; text-shadow: 0 0 24px rgba(124, 77, 255, 0.6); }
     }
 
     .btn {
       background: var(--primary);
       color: white;
       border: none;
-      padding: 16px;
+      padding: 14px;
       font-size: clamp(16px, 4vw, 18px);
       border-radius: var(--border-radius);
-      margin: 10px auto;
+      margin: 8px auto;
       display: block;
       width: 100%;
-      max-width: 300px;
+      max-width: 280px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(124, 77, 255, 0.3);
+      box-shadow: 0 3px 10px rgba(124, 77, 255, 0.3);
       transition: var(--transition);
       font-weight: 500;
       position: relative;
@@ -171,36 +155,34 @@
 
     .btn:hover, .btn:focus {
       background: var(--primary-dark);
-      box-shadow: 0 6px 20px rgba(124, 77, 255, 0.4);
-      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(124, 77, 255, 0.4);
     }
 
     .btn:active {
-      transform: translateY(0);
+      transform: translateY(1px);
     }
 
     .btn.secondary {
       background: var(--surface);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
     }
 
     .btn.secondary:hover {
       background: #333;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
     }
 
     .keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin: 25px 0;
-      padding: 0 10px;
+      gap: 10px;
+      margin: 16px 0;
+      padding: 0 8px;
     }
 
     .keypad button {
       height: var(--key-size);
       width: 100%;
-      font-size: clamp(24px, 6vw, 28px);
+      font-size: clamp(18px, 5vw, 22px);
       background: var(--surface);
       color: white;
       border: none;
@@ -208,11 +190,11 @@
       transition: var(--transition);
       font-family: var(--font-mono);
       font-weight: 500;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     }
 
     .keypad button:active {
-      transform: scale(0.95);
+      transform: scale(0.96);
       background: var(--primary-dark);
     }
 
@@ -221,23 +203,23 @@
     }
 
     .answer-box {
-      font-size: clamp(28px, 8vw, 32px);
+      font-size: clamp(22px, 6vw, 26px);
       color: var(--secondary);
-      margin: 20px 15px;
-      min-height: 40px;
+      margin: 12px 8px;
+      min-height: 36px;
       text-align: center;
       font-family: var(--font-mono);
       font-weight: 500;
-      letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
     }
 
     .result {
-      font-size: clamp(18px, 4vw, 20px);
-      margin: 15px 0;
-      min-height: 30px;
+      font-size: clamp(14px, 3.8vw, 16px);
+      margin: 12px 0;
+      min-height: 24px;
       text-align: center;
-      padding: 12px;
+      padding: 10px;
       border-radius: var(--border-radius);
       background: rgba(0, 230, 118, 0.1);
       color: var(--secondary);
@@ -251,20 +233,20 @@
     .level-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin: 20px 0;
-      padding: 0 10px;
+      gap: 8px;
+      margin: 16px 0;
+      padding: 0 8px;
     }
 
     .level-grid button {
-      padding: 14px 0;
-      border-radius: 12px;
+      padding: 12px 0;
+      border-radius: 10px;
       background-color: var(--surface);
       color: var(--text-primary);
       border: none;
-      font-size: clamp(14px, 3vw, 16px);
+      font-size: clamp(12px, 2.8vw, 14px);
       transition: var(--transition);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .level-grid button.completed {
@@ -286,26 +268,26 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin: 25px 0;
-      padding: 12px 16px;
+      margin: 18px 0;
+      padding: 12px 14px;
       background: var(--surface);
       border-radius: var(--border-radius);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
     .toggle-container label {
-      font-size: clamp(16px, 4vw, 18px);
+      font-size: clamp(14px, 3.8vw, 16px);
       color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 52px;
-      height: 28px;
+      width: 48px;
+      height: 26px;
     }
 
     .switch input {
@@ -331,8 +313,8 @@
       content: "";
       height: 20px;
       width: 20px;
-      left: 4px;
-      bottom: 4px;
+      left: 3px;
+      bottom: 3px;
       background-color: white;
       transition: var(--transition);
       border-radius: 50%;
@@ -343,20 +325,20 @@
     }
 
     input:checked + .slider:before {
-      transform: translateX(24px);
+      transform: translateX(22px);
     }
 
     .question-container {
       background: var(--surface);
-      padding: 20px;
+      padding: 16px;
       border-radius: var(--border-radius);
-      margin: 15px 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin: 12px 0;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
     }
 
     #questionText {
-      font-size: clamp(18px, 4.5vw, 20px);
-      line-height: 1.5;
+      font-size: clamp(15px, 4vw, 17px);
+      line-height: 1.4;
       text-align: center;
       color: var(--text-primary);
     }
@@ -385,34 +367,34 @@
       align-items: center;
       justify-content: center;
       z-index: 2000;
-      animation: splashFade 2s ease-out forwards;
+      animation: splashFade 1.5s ease-out forwards;
     }
 
     .logo {
-      font-size: clamp(60px, 20vw, 80px);
+      font-size: clamp(50px, 18vw, 70px);
       animation: logoAnim 2s ease-in-out infinite;
-      margin-bottom: 20px;
-      text-shadow: 0 0 20px rgba(124, 77, 255, 0.6);
+      margin-bottom: 16px;
+      text-shadow: 0 0 16px rgba(124, 77, 255, 0.6);
     }
 
     .splash-text {
-      font-size: clamp(20px, 6vw, 28px);
+      font-size: clamp(18px, 5vw, 24px);
       font-weight: 600;
-      margin-top: 20px;
+      margin-top: 16px;
       opacity: 0;
-      animation: textFadeIn 1s ease-out forwards;
-      animation-delay: 0.5s;
+      animation: textFadeIn 0.8s ease-out forwards;
+      animation-delay: 0.4s;
     }
 
     @keyframes logoAnim {
       0% { transform: scale(1) rotate(0); }
-      30% { transform: scale(1.1) rotate(5deg); }
+      30% { transform: scale(1.08) rotate(5deg); }
       60% { transform: scale(0.95) rotate(-5deg); }
       100% { transform: scale(1) rotate(0); }
     }
 
     @keyframes textFadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -424,37 +406,36 @@
 
     /* Mobile-specific adjustments */
     @media (max-height: 700px) {
-      h1 {
-        margin: 10px 0 20px;
-        font-size: clamp(30px, 8vw, 40px);
+      #homeScreen h1 {
+        margin: 8px 0 16px;
       }
       
       .btn {
-        padding: 14px;
-        margin: 8px auto;
+        padding: 12px;
+        margin: 6px auto;
       }
       
       .keypad {
-        gap: 10px;
-        margin: 15px 0;
+        gap: 8px;
+        margin: 12px 0;
       }
       
       .keypad button {
-        height: calc(var(--key-size) * 0.9);
+        height: calc(var(--key-size) * 0.85);
       }
       
       .question-container {
-        padding: 15px;
+        padding: 14px;
       }
     }
 
     @media (max-width: 400px) {
       .screen {
-        padding: 15px;
+        padding: 12px;
       }
       
       .level-grid {
-        gap: 8px;
+        gap: 6px;
       }
       
       .toggle-container {
@@ -489,7 +470,7 @@
           <span>🎵</span> Background Music
         </label>
         <label class="switch">
-          <input type="checkbox" id="musicToggle">
+          <input type="checkbox" id="musicToggle" checked>
           <span class="slider"></span>
         </label>
       </div>
@@ -498,7 +479,7 @@
           <span>🔊</span> Sound Effects
         </label>
         <label class="switch">
-          <input type="checkbox" id="sfxToggle">
+          <input type="checkbox" id="sfxToggle" checked>
           <span class="slider"></span>
         </label>
       </div>
@@ -539,7 +520,7 @@
 
       <div class="result" id="resultMsg"></div>
 
-      <div style="display: flex; gap: 10px; justify-content: center;">
+      <div style="display: flex; gap: 8px; justify-content: center; margin: 8px 0;">
         <button class="btn secondary" id="hintBtn" style="flex: 1;">Hint</button>
         <button class="btn secondary" id="solutionBtn" style="flex: 1;">Solution</button>
       </div>
@@ -683,9 +664,17 @@
       // Initialize toggle states from localStorage
       if (localStorage.getItem("music") !== "off") {
         elements.toggles.music.checked = true;
+        // Auto-start background music
+        setTimeout(() => {
+          elements.audio.bgMusic.play().catch(e => {
+            // If autoplay fails, enable on first interaction
+            document.addEventListener('click', () => {
+              elements.audio.bgMusic.play().catch(console.error);
+            }, { once: true });
+          });
+        }, 1500);
       } else {
         elements.toggles.music.checked = false;
-        elements.audio.bgMusic.pause();
       }
 
       if (localStorage.getItem("sfx") !== "off") {
@@ -703,7 +692,7 @@
       // Handle splash screen
       setTimeout(() => {
         elements.splash.style.display = "none";
-      }, 2000);
+      }, 1500);
     }
 
     // Set up all event listeners
@@ -774,21 +763,6 @@
       
       // Handle Android back button
       window.addEventListener("popstate", handleBackButton);
-      
-      // Enable audio on first interaction
-      const enableAudio = () => {
-        document.removeEventListener("click", enableAudio);
-        document.removeEventListener("touchstart", enableAudio);
-        try {
-          if (elements.toggles.music.checked) {
-            elements.audio.bgMusic.play().catch(e => console.log("Audio play error:", e));
-          }
-        } catch (e) {
-          console.error("Audio error:", e);
-        }
-      };
-      document.addEventListener("click", enableAudio, { once: true });
-      document.addEventListener("touchstart", enableAudio, { once: true });
     }
 
     function handleBackButton() {
@@ -915,7 +889,7 @@
       const msg = elements.gameElements.resultMsg;
       
       if (userAnswer === r.answer) {
-        msg.textContent = "🎉 Correct Answer!";
+        msg.textContent = "🎉 Correct!";
         msg.className = "result";
         playCorrectSound();
         
@@ -930,13 +904,13 @@
           setTimeout(() => {
             if (currentLevel <= riddles.length) loadLevel(currentLevel);
             else {
-              alert("🎊 Congratulations! You've completed all levels!");
+              alert("🎊 All levels completed!");
               showScreen('homeScreen');
             }
           }, 1000);
         });
       } else {
-        msg.textContent = "❌ Incorrect, try again!";
+        msg.textContent = "❌ Try again";
         msg.className = "result error";
         playWrongSound();
         setTimeout(() => {
@@ -968,11 +942,11 @@
       const colors = ['#7C4DFF', '#00E676', '#FF5252', '#FFD600', '#00B0FF'];
       
       // Create particles
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 80; i++) {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height - canvas.height,
-          size: Math.random() * 10 + 5,
+          size: Math.random() * 8 + 4,
           color: colors[Math.floor(Math.random() * colors.length)],
           speed: Math.random() * 3 + 2,
           angle: Math.random() * Math.PI * 2,
@@ -1008,7 +982,7 @@
         });
         
         frame++;
-        if (frame < 120) {
+        if (frame < 100) {
           requestAnimationFrame(anim);
         } else {
           clearConfetti();
