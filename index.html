@@ -4,16 +4,28 @@
   <meta charset="UTF-8">
   <title>Math Riddles Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0a0a0a">
+  <meta name="theme-color" content="#121212">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --accent: #00e6e6;
-      --bg-dark: #0a0a0a;
-      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      --key-size: min(20vw, 80px);
+      --primary: #7C4DFF;
+      --primary-light: #B388FF;
+      --primary-dark: #651FFF;
+      --secondary: #00E676;
+      --error: #FF5252;
+      --bg-dark: #121212;
+      --bg-light: #1E1E1E;
+      --surface: #252525;
+      --text-primary: #FFFFFF;
+      --text-secondary: #BDBDBD;
+      --font-main: 'Poppins', sans-serif;
+      --font-mono: 'Roboto Mono', monospace;
+      --key-size: min(22vw, 90px);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     * {
@@ -27,9 +39,9 @@
     html, body {
       margin: 0;
       padding: 0;
-      font-family: var(--font);
+      font-family: var(--font-main);
       background: var(--bg-dark);
-      color: white;
+      color: var(--text-primary);
       height: 100%;
       overflow: hidden;
       touch-action: manipulation;
@@ -45,12 +57,12 @@
       width: 100vw;
       height: 100vh;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
-      padding-bottom: env(safe-area-inset-bottom, 8vh);
       opacity: 0;
       animation: fadeIn 1s ease-out forwards;
-      animation-delay: 2.5s;
+      animation-delay: 1s;
+      padding-bottom: env(safe-area-inset-bottom, 0);
     }
 
     @keyframes fadeIn {
@@ -62,144 +74,299 @@
       width: 100%;
       height: 100%;
       max-width: 500px;
-      padding: 20px 15px;
+      padding: 20px;
       box-sizing: border-box;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+      background: var(--bg-dark);
+      position: relative;
+    }
+
+    .screen::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 12px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.2), transparent);
+      z-index: 10;
     }
 
     .active {
-      display: block;
+      display: flex;
+      flex-direction: column;
     }
 
     h1 {
-      font-size: clamp(32px, 8vw, 42px);
-      color: var(--accent);
+      font-size: clamp(36px, 8vw, 48px);
+      color: var(--primary-light);
       text-align: center;
-      margin-bottom: 5vh;
-      text-shadow: 0 0 12px var(--accent);
+      margin: 20px 0 30px;
+      font-weight: 700;
+      text-shadow: 0 0 16px rgba(124, 77, 255, 0.4);
+      animation: pulse 2s infinite alternate;
     }
 
     h2 {
-      font-size: clamp(24px, 6vw, 28px);
-      color: var(--accent);
+      font-size: clamp(26px, 6vw, 32px);
+      color: var(--primary-light);
       text-align: center;
-      margin-bottom: 15px;
+      margin: 0 0 25px;
+      font-weight: 600;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.9; }
+      100% { opacity: 1; text-shadow: 0 0 24px rgba(124, 77, 255, 0.6); }
     }
 
     .btn {
-      background: var(--accent);
-      color: #000;
+      background: var(--primary);
+      color: white;
       border: none;
-      padding: 14px;
+      padding: 16px;
       font-size: clamp(16px, 4vw, 18px);
-      border-radius: 12px;
-      margin: 8px auto;
+      border-radius: var(--border-radius);
+      margin: 10px auto;
       display: block;
-      width: 90%;
+      width: 100%;
       max-width: 300px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 230, 230, 0.3);
-      transition: transform 0.1s ease, background 0.3s ease;
-      touch-action: manipulation;
+      box-shadow: 0 4px 12px rgba(124, 77, 255, 0.3);
+      transition: var(--transition);
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%, -50%);
+      transform-origin: 50% 50%;
+    }
+
+    .btn:active::after {
+      animation: ripple 0.6s ease-out;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(40, 40);
+        opacity: 0;
+      }
+    }
+
+    .btn:hover, .btn:focus {
+      background: var(--primary-dark);
+      box-shadow: 0 6px 20px rgba(124, 77, 255, 0.4);
+      transform: translateY(-2px);
     }
 
     .btn:active {
-      transform: scale(0.95);
+      transform: translateY(0);
     }
 
-    .btn:hover {
-      background: #00bdbd;
-      box-shadow: 0 4px 20px rgba(0, 230, 230, 0.5);
+    .btn.secondary {
+      background: var(--surface);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn.secondary:hover {
+      background: #333;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
     }
 
     .keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 20px 0;
+      gap: 12px;
+      margin: 25px 0;
       padding: 0 10px;
     }
 
     .keypad button {
       height: var(--key-size);
       width: 100%;
-      font-size: clamp(20px, 6vw, 24px);
-      background: #00bcd4;
+      font-size: clamp(24px, 6vw, 28px);
+      background: var(--surface);
       color: white;
       border: none;
-      border-radius: 10px;
-      transition: transform 0.1s ease;
-      touch-action: manipulation;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      font-family: var(--font-mono);
+      font-weight: 500;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     .keypad button:active {
       transform: scale(0.95);
+      background: var(--primary-dark);
+    }
+
+    .keypad button.operator {
+      background: var(--primary);
     }
 
     .answer-box {
-      font-size: clamp(22px, 7vw, 26px);
-      color: #ffd54f;
-      margin: 15px;
-      min-height: 30px;
+      font-size: clamp(28px, 8vw, 32px);
+      color: var(--secondary);
+      margin: 20px 15px;
+      min-height: 40px;
       text-align: center;
-      word-break: break-all;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
     }
 
     .result {
-      font-size: clamp(16px, 4vw, 18px);
-      margin-top: 10px;
-      min-height: 25px;
+      font-size: clamp(18px, 4vw, 20px);
+      margin: 15px 0;
+      min-height: 30px;
       text-align: center;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      background: rgba(0, 230, 118, 0.1);
+      color: var(--secondary);
+    }
+
+    .result.error {
+      background: rgba(255, 82, 82, 0.1);
+      color: var(--error);
     }
 
     .level-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin: 15px 0;
+      gap: 10px;
+      margin: 20px 0;
       padding: 0 10px;
     }
 
     .level-grid button {
-      padding: 12px 0;
-      border-radius: 8px;
-      background-color: #333;
-      color: #fff;
-      border: 1px solid #444;
-      font-size: clamp(12px, 3vw, 14px);
-      transition: transform 0.1s ease;
+      padding: 14px 0;
+      border-radius: 12px;
+      background-color: var(--surface);
+      color: var(--text-primary);
+      border: none;
+      font-size: clamp(14px, 3vw, 16px);
+      transition: var(--transition);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .level-grid button.completed {
+      background: var(--primary);
+      color: white;
     }
 
     .level-grid button:active {
-      transform: scale(0.95);
+      transform: scale(0.96);
     }
 
     .level-grid button:disabled {
-      opacity: 0.3;
+      opacity: 0.5;
       cursor: default;
+      background: #333;
     }
 
     .toggle-container {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin: 20px 0;
-      padding: 0 15px;
+      margin: 25px 0;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .toggle-container label {
       font-size: clamp(16px, 4vw, 18px);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    input[type="checkbox"] {
-      transform: scale(1.3);
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #555;
+      transition: var(--transition);
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: var(--transition);
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .question-container {
+      background: var(--surface);
+      padding: 20px;
+      border-radius: var(--border-radius);
+      margin: 15px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    #questionText {
+      font-size: clamp(18px, 4.5vw, 20px);
+      line-height: 1.5;
+      text-align: center;
+      color: var(--text-primary);
     }
 
     canvas {
       position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       pointer-events: none;
       z-index: 1000;
     }
@@ -207,28 +374,46 @@
     /* Splash Screen */
     #splash {
       position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background-color: var(--bg-dark);
-      color: var(--accent);
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, var(--bg-dark), #1A1A2E);
+      color: var(--primary-light);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
       z-index: 2000;
-      animation: splashFade 2.5s ease-out forwards;
+      animation: splashFade 2s ease-out forwards;
     }
 
     .logo {
-      font-size: clamp(48px, 15vw, 64px);
+      font-size: clamp(60px, 20vw, 80px);
       animation: logoAnim 2s ease-in-out infinite;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(124, 77, 255, 0.6);
+    }
+
+    .splash-text {
+      font-size: clamp(20px, 6vw, 28px);
+      font-weight: 600;
+      margin-top: 20px;
+      opacity: 0;
+      animation: textFadeIn 1s ease-out forwards;
+      animation-delay: 0.5s;
     }
 
     @keyframes logoAnim {
       0% { transform: scale(1) rotate(0); }
-      30% { transform: scale(1.15) rotate(15deg); }
-      60% { transform: scale(0.95) rotate(-10deg); }
+      30% { transform: scale(1.1) rotate(5deg); }
+      60% { transform: scale(0.95) rotate(-5deg); }
       100% { transform: scale(1) rotate(0); }
+    }
+
+    @keyframes textFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes splashFade {
@@ -238,26 +423,42 @@
     }
 
     /* Mobile-specific adjustments */
-    @media (max-height: 600px) {
+    @media (max-height: 700px) {
       h1 {
-        margin-bottom: 3vh;
+        margin: 10px 0 20px;
+        font-size: clamp(30px, 8vw, 40px);
       }
       
       .btn {
-        padding: 10px;
-        margin: 6px auto;
+        padding: 14px;
+        margin: 8px auto;
       }
       
       .keypad {
-        gap: 6px;
+        gap: 10px;
+        margin: 15px 0;
       }
       
       .keypad button {
-        height: calc(var(--key-size) * 0.8);
+        height: calc(var(--key-size) * 0.9);
+      }
+      
+      .question-container {
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .screen {
+        padding: 15px;
+      }
+      
+      .level-grid {
+        gap: 8px;
       }
       
       .toggle-container {
-        margin: 15px 0;
+        padding: 10px 12px;
       }
     }
   </style>
@@ -266,45 +467,59 @@
   <!-- Splash Screen -->
   <div id="splash">
     <div class="logo">🧠</div>
-    <div style="margin-top: 10px; font-size: clamp(18px, 5vw, 24px);">Math Riddles</div>
+    <div class="splash-text">Math Riddles</div>
   </div>
 
   <!-- Main App Container -->
   <div class="container">
     <!-- Home Screen -->
     <div id="homeScreen" class="screen active">
-      <h1>🧠 Math Riddles</h1>
+      <h1>Math Riddles</h1>
       <button class="btn" id="playBtn">▶ Play</button>
-      <button class="btn" id="levelsBtn">📚 Levels</button>
-      <button class="btn" id="settingsBtn">⚙️ Settings</button>
-      <button class="btn" id="quitBtn">❌ Quit</button>
+      <button class="btn secondary" id="levelsBtn">📚 Levels</button>
+      <button class="btn secondary" id="settingsBtn">⚙️ Settings</button>
+      <button class="btn secondary" id="quitBtn">❌ Quit</button>
     </div>
 
     <!-- Settings Screen -->
     <div id="settingsScreen" class="screen">
       <h2>Settings</h2>
       <div class="toggle-container">
-        <label for="musicToggle">🎵 Background Music</label>
-        <input type="checkbox" id="musicToggle">
+        <label for="musicToggle">
+          <span>🎵</span> Background Music
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="musicToggle">
+          <span class="slider"></span>
+        </label>
       </div>
       <div class="toggle-container">
-        <label for="sfxToggle">🔊 Sound Effects</label>
-        <input type="checkbox" id="sfxToggle">
+        <label for="sfxToggle">
+          <span>🔊</span> Sound Effects
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="sfxToggle">
+          <span class="slider"></span>
+        </label>
       </div>
-      <button class="btn" id="backFromSettingsBtn">⬅ Back</button>
+      <button class="btn secondary" id="backFromSettingsBtn">⬅ Back</button>
     </div>
 
     <!-- Levels Screen -->
     <div id="levelsScreen" class="screen">
       <h2>Select Level</h2>
       <div class="level-grid" id="levelButtons"></div>
-      <button class="btn" id="backFromLevelsBtn">⬅ Back</button>
+      <button class="btn secondary" id="backFromLevelsBtn">⬅ Back</button>
     </div>
 
     <!-- Riddle Screen -->
     <div id="riddleScreen" class="screen">
       <h2 id="levelTitle">Level</h2>
-      <div id="questionText" style="text-align: center; padding: 0 10px;"></div>
+      
+      <div class="question-container">
+        <div id="questionText"></div>
+      </div>
+      
       <div class="answer-box" id="answerBox"></div>
 
       <div class="keypad">
@@ -317,16 +532,18 @@
         <button data-number="7">7</button>
         <button data-number="8">8</button>
         <button data-number="9">9</button>
-        <button id="clearBtn">C</button>
+        <button id="clearBtn" class="operator">C</button>
         <button data-number="0">0</button>
-        <button id="submitBtn">✓</button>
+        <button id="submitBtn" class="operator">✓</button>
       </div>
 
       <div class="result" id="resultMsg"></div>
 
-      <button class="btn" id="hintBtn">Hint</button>
-      <button class="btn" id="solutionBtn">Solution</button>
-      <button class="btn" id="backFromGameBtn">⬅ Back</button>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn secondary" id="hintBtn" style="flex: 1;">Hint</button>
+        <button class="btn secondary" id="solutionBtn" style="flex: 1;">Solution</button>
+      </div>
+      <button class="btn secondary" id="backFromGameBtn">⬅ Back</button>
     </div>
   </div>
 
@@ -346,28 +563,53 @@
   <script>
     // Game data
     const riddles = [
-      { question: "I am 2-digit. Reversed I am 27 more. Digits add to 9. What am I?", answer: "36", hint: "Reverse: 63", solution: "63 - 36 = 27" },
-      { question: "Divide 30 by half and add 10.", answer: "70", hint: "Divide by 0.5", solution: "30 ÷ 0.5 + 10 = 70" },
-      { question: "Smallest 3-digit Armstrong number?", answer: "153", hint: "1³+5³+3³", solution: "1+125+27=153" },
-      { question: "If 1=3, 2=3, 3=5, 4=4, 5=4, then 6=?", answer: "3", hint: "Count letters in number words", solution: "six has 3 letters" },
-      { question: "What comes next: 1, 11, 21, 1211, 111221, ...?", answer: "312211", hint: "Say the previous number", solution: "1, one 1, two 1s, one 2 one 1, etc." }
+      { 
+        question: "I am a 2-digit number. When reversed, I become 27 more than my original value. My digits add up to 9. What number am I?", 
+        answer: "36", 
+        hint: "The reversed number is 63", 
+        solution: "63 - 36 = 27, and 3 + 6 = 9" 
+      },
+      { 
+        question: "If you divide 30 by half and then add 10, what do you get?", 
+        answer: "70", 
+        hint: "Dividing by half is the same as multiplying by 2", 
+        solution: "30 ÷ 0.5 = 60, then 60 + 10 = 70" 
+      },
+      { 
+        question: "What is the smallest 3-digit Armstrong number (a number that equals the sum of its own digits each raised to the power of the number of digits)?", 
+        answer: "153", 
+        hint: "1³ + 5³ + 3³ = ?", 
+        solution: "1 + 125 + 27 = 153" 
+      },
+      { 
+        question: "If 1=3, 2=3, 3=5, 4=4, 5=4, then what does 6 equal?", 
+        answer: "3", 
+        hint: "Count the letters in the English word for each number", 
+        solution: "six has 3 letters (s-i-x)" 
+      },
+      { 
+        question: "What comes next in this sequence: 1, 11, 21, 1211, 111221, ...?", 
+        answer: "312211", 
+        hint: "This is the 'look-and-say' sequence", 
+        solution: "1, one 1, two 1s, one 2 one 1, etc." 
+      }
     ];
     
     // Generate additional riddles
     while (riddles.length < 50) {
       let n = riddles.length + 1;
       const operations = [
-        { op: '+', fn: (a,b) => a + b },
-        { op: '-', fn: (a,b) => a - b },
-        { op: '×', fn: (a,b) => a * b }
+        { op: '+', fn: (a,b) => a + b, word: "plus" },
+        { op: '-', fn: (a,b) => a - b, word: "minus" },
+        { op: '×', fn: (a,b) => a * b, word: "times" }
       ];
       const selected = operations[Math.floor(Math.random() * operations.length)];
-      const a = Math.floor(Math.random() * 10) + 1;
-      const b = Math.floor(Math.random() * 10) + 1;
+      const a = Math.floor(Math.random() * 15) + 1;
+      const b = Math.floor(Math.random() * 15) + 1;
       riddles.push({
         question: `What is ${a} ${selected.op} ${b}?`,
         answer: selected.fn(a,b).toString(),
-        hint: `Basic arithmetic operation`,
+        hint: `Basic arithmetic operation (${selected.word})`,
         solution: `${a} ${selected.op} ${b} = ${selected.fn(a,b)}`
       });
     }
@@ -461,7 +703,7 @@
       // Handle splash screen
       setTimeout(() => {
         elements.splash.style.display = "none";
-      }, 2500);
+      }, 2000);
     }
 
     // Set up all event listeners
@@ -470,7 +712,11 @@
       elements.buttons.play.addEventListener("click", startGame);
       elements.buttons.levels.addEventListener("click", () => showScreen("levelsScreen"));
       elements.buttons.settings.addEventListener("click", () => showScreen("settingsScreen"));
-      elements.buttons.quit.addEventListener("click", () => window.close());
+      elements.buttons.quit.addEventListener("click", () => {
+        if (confirm("Are you sure you want to quit?")) {
+          window.close();
+        }
+      });
       elements.buttons.backFromSettings.addEventListener("click", () => showScreen("homeScreen"));
       elements.buttons.backFromLevels.addEventListener("click", () => showScreen("homeScreen"));
       elements.buttons.backFromGame.addEventListener("click", () => showScreen("homeScreen"));
@@ -625,8 +871,13 @@
       grid.innerHTML = "";
       riddles.forEach((_, i) => {
         const btn = document.createElement("button");
-        btn.textContent = solved.includes(i + 1) ? `✅ ${i + 1}` : `🔒 ${i + 1}`;
+        btn.textContent = i + 1;
         btn.disabled = !solved.includes(i + 1) && (i + 1 !== currentLevel);
+        
+        if (solved.includes(i + 1)) {
+          btn.classList.add("completed");
+        }
+        
         btn.addEventListener("click", () => loadLevel(i + 1));
         grid.appendChild(btn);
       });
@@ -641,6 +892,7 @@
       elements.gameElements.questionText.textContent = r.question;
       elements.gameElements.answerBox.textContent = "";
       elements.gameElements.resultMsg.textContent = "";
+      elements.gameElements.resultMsg.className = "result";
       showScreen("riddleScreen");
     }
 
@@ -663,8 +915,8 @@
       const msg = elements.gameElements.resultMsg;
       
       if (userAnswer === r.answer) {
-        msg.textContent = "🎉 Correct!";
-        msg.style.color = "#00e676";
+        msg.textContent = "🎉 Correct Answer!";
+        msg.className = "result";
         playCorrectSound();
         
         fireConfetti(() => {
@@ -678,27 +930,32 @@
           setTimeout(() => {
             if (currentLevel <= riddles.length) loadLevel(currentLevel);
             else {
-              alert("🎊 All levels completed!");
+              alert("🎊 Congratulations! You've completed all levels!");
               showScreen('homeScreen');
             }
           }, 1000);
         });
       } else {
-        msg.textContent = "❌ Wrong! Try again";
-        msg.style.color = "#e53935";
+        msg.textContent = "❌ Incorrect, try again!";
+        msg.className = "result error";
         playWrongSound();
-        setTimeout(clearAnswer, 800);
+        setTimeout(() => {
+          elements.gameElements.resultMsg.textContent = "";
+          elements.gameElements.resultMsg.className = "result";
+        }, 1500);
       }
     }
 
     function showHint() {
       playHintSound();
-      alert("Hint: " + riddles[currentLevel - 1].hint);
+      const r = riddles[currentLevel - 1];
+      alert(`💡 Hint: ${r.hint}\n\n(Current answer: ${userAnswer || "none"})`);
     }
 
     function showSolution() {
       playSolutionSound();
-      alert("Solution: " + riddles[currentLevel - 1].solution);
+      const r = riddles[currentLevel - 1];
+      alert(`🔍 Solution: ${r.solution}\n\nThe correct answer is: ${r.answer}`);
     }
 
     function fireConfetti(callback) {
@@ -707,37 +964,58 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       
-      const pieces = Array.from({ length: 60 }, () => ({
-        x: Math.random() * canvas.width,
-        y: -10,
-        size: Math.random() * 8 + 4,
-        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-        speed: Math.random() * 3 + 2,
-        rotation: Math.random() * 360,
-        rotationSpeed: Math.random() * 10 - 5
-      }));
+      const particles = [];
+      const colors = ['#7C4DFF', '#00E676', '#FF5252', '#FFD600', '#00B0FF'];
+      
+      // Create particles
+      for (let i = 0; i < 100; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          size: Math.random() * 10 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          speed: Math.random() * 3 + 2,
+          angle: Math.random() * Math.PI * 2,
+          rotation: Math.random() * 360,
+          rotationSpeed: Math.random() * 10 - 5
+        });
+      }
       
       let frame = 0;
       const anim = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pieces.forEach(p => {
+        
+        particles.forEach(p => {
           ctx.save();
-          ctx.translate(p.x + p.size/2, p.y + p.size/2);
-          ctx.rotate(p.rotation * Math.PI/180);
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation * Math.PI / 180);
+          
+          // Draw particle
           ctx.fillStyle = p.color;
           ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+          
           ctx.restore();
           
+          // Update position
           p.y += p.speed;
           p.rotation += p.rotationSpeed;
+          
+          // Reset particles that fall off screen
+          if (p.y > canvas.height + p.size) {
+            p.y = -p.size;
+            p.x = Math.random() * canvas.width;
+          }
         });
+        
         frame++;
-        if (frame < 50) requestAnimationFrame(anim);
-        else {
+        if (frame < 120) {
+          requestAnimationFrame(anim);
+        } else {
           clearConfetti();
           if (callback) callback();
         }
       };
+      
       anim();
     }
 
