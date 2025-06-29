@@ -662,6 +662,7 @@ function loadLevel(level) {
   elements.gameElements.answerBox.textContent = "";
   elements.gameElements.resultMsg.textContent = "";
   elements.gameElements.resultMsg.className = "result";
+  elements.buttons.solution.disabled = !hintsUsed[level]; // Disable solution button unless hint is used
   updateProgressBar();
   startTimer();
   showScreen("riddleScreen");
@@ -748,6 +749,8 @@ function showHint() {
   elements.hintPopup.classList.add("active");
   hintsUsed[currentLevel] = (hintsUsed[currentLevel] || 0) + 1;
   localStorage.setItem("hintsUsed", JSON.stringify(hintsUsed));
+  elements.buttons.solution.disabled = false; // Enable solution button after hint is used
+  renderLevels(); // Update hint count display
 }
 
 function hideHintPopup() {
