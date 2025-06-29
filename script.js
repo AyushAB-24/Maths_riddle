@@ -93,7 +93,7 @@ const riddles = [
     question: "6-2=16, 5-3=25, 9-2=?",
     answer: "49",
     hint: "Square of difference",
-    solution: "6–2 = 4, 4² = 16; 9–2 = 7, 7² = 49"
+    solution: "6–2 = 6–2 = 4, 4² = 16; 9–2 = 7, 7² = 49"
   },
   {
    question: "What is the next number in this sequence: 1, 4, 9, 16, 25, ...?",
@@ -303,8 +303,11 @@ const riddles = [
 
 let currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
 let solved = JSON.parse(localStorage.getItem("solvedLevels") || "[]");
+let hintsUsed = JSON.parse(localStorage.getItem("hintsUsed") || "{}");
 let userAnswer = "";
 let isProcessingInput = false;
+let timerInterval = null;
+let levelStartTime = 0;
 
 const elements = {
   screens: {
@@ -337,7 +340,10 @@ const elements = {
     resultMsg: document.getElementById("resultMsg"),
     levelButtons: document.getElementById("levelButtons"),
     hintText: document.getElementById("hintText"),
-    solutionText: document.getElementById("solutionText")
+    solutionText: document.getElementById("solutionText"),
+    progressBar: document.getElementById("progressBar"),
+    levelTimer: document.getElementById("levelTimer"),
+    achievementsList: document.getElementById("achievementsList")
   },
   audio: {
     bgMusic: document.getElementById("bgMusic"),
@@ -352,10 +358,12 @@ const elements = {
   },
   toggles: {
     music: document.getElementById("musicToggle"),
-    sfx: document.getElementById("sfxToggle")
+    sfx: document.getElementById("sfxToggle"),
+    theme: document.getElementById("themeToggle")
   },
   splash: document.getElementById("splash"),
   confettiCanvas: document.getElementById("confetti-canvas"),
+  particleCanvas: document.getElementById("particle-canvas"),
   quitModal: document.getElementById("quitModal"),
   hintPopup: document.getElementById("hintPopup"),
   solutionPopup: document.getElementById("solutionPopup")
@@ -371,9 +379,9 @@ function initGame() {
   elements.audio.hint.volume = 0.5;
   elements.audio.solution.volume = 0.5;
   elements.audio.screenTransition.volume = 0.4;
-  elements.audio.buttonHover.volume = 0.3;
+  elements.audio.buttonHover.volume = 0.2; // Softer hover sound
 
-  // Initialize music based on localStorage
+  // Initialize music
   if (localStorage.getItem("music") !== "off") {
     elements.toggles.music.checked = true;
     setTimeout(() => {
@@ -387,20 +395,30 @@ function initGame() {
     elements.toggles.music.checked = false;
   }
 
-  // Initialize SFX toggle
+  // Initialize SFX
   if (localStorage.getItem("sfx") !== "off") {
     elements.toggles.sfx.checked = true;
   } else {
     elements.toggles.sfx.checked = false;
   }
 
+  // Initialize theme
+  if (localStorage.getItem("theme") === "light") {
+    elements.toggles.theme.checked = true;
+    document.body.classList.add("light-theme");
+  } else {
+    elements.toggles.theme.checked = false;
+  }
+
   setupEventListeners();
   renderLevels();
+  updateAchievements();
+  initParticles();
 
-  // Hide splash screen after 1.5s
+  // Hide splash screen after 2s
   setTimeout(() => {
     elements.splash.style.display = "none";
-  }, 1500);
+  }, 2000);
 }
 
 function setupEventListeners() {
@@ -454,7 +472,7 @@ function setupEventListeners() {
     }
   }, { passive: true });
 
-  document.querySelectorAll(".btn").forEach(btn => {
+  document.querySelectorAll(".btn, .level-btn").forEach(btn => {
     btn.addEventListener("mouseenter", () => playSound(elements.audio.buttonHover));
     btn.addEventListener("touchstart", () => {
       playSound(elements.audio.buttonHover);
@@ -463,6 +481,7 @@ function setupEventListeners() {
 
   elements.toggles.music.addEventListener("change", toggleMusic);
   elements.toggles.sfx.addEventListener("change", toggleSFX);
+  elements.toggles.theme.addEventListener("change", toggleTheme);
   
   window.addEventListener("popstate", handleBackButton);
 }
@@ -514,6 +533,16 @@ function toggleSFX() {
   }
 }
 
+function toggleTheme() {
+  if (elements.toggles.theme.checked) {
+    document.body.classList.add("light-theme");
+    localStorage.setItem("theme", "light");
+  } else {
+    document.body.classList.remove("light-theme");
+    localStorage.setItem("theme", "dark");
+  }
+}
+
 function playSound(sound) {
   if (elements.toggles.sfx.checked && sound) {
     sound.currentTime = 0;
@@ -555,6 +584,9 @@ function showScreen(id) {
   Object.values(elements.screens).forEach(s => s.classList.remove("active"));
   elements.screens[id.replace("Screen", "")].classList.add("active");
   playClick();
+  if (id === "levelsScreen") {
+    animateLevelButtons();
+  }
 }
 
 function startGame() {
@@ -570,12 +602,13 @@ function renderLevels() {
     btn.textContent = level;
     btn.classList.add("level-btn");
     
-    // Enable current level, solved levels, and the next level if the current level is solved
+    // Enable current level, solved levels, and the next level if current is solved
     btn.disabled = !(solved.includes(level) || level === currentLevel || (level === currentLevel + 1 && solved.includes(currentLevel)));
     
     if (solved.includes(level)) {
       btn.classList.add("completed");
-      btn.innerHTML = `${level} <span class="check">✔</span>`;
+      const hints = hintsUsed[level] || 0;
+      btn.innerHTML = `${level} <span class="check">✔</span><span class="hint-count">${hints ? `💡${hints}` : ''}</span>`;
     } else if (level === currentLevel) {
       btn.classList.add("current");
     }
@@ -589,16 +622,48 @@ function renderLevels() {
   });
 }
 
+function animateLevelButtons() {
+  const buttons = document.querySelectorAll(".level-btn");
+  buttons.forEach((btn, index) => {
+    btn.style.animation = `bounceIn 0.5s ease ${index * 0.05}s forwards`;
+    btn.style.opacity = "0";
+  });
+}
+
+function updateProgressBar() {
+  const progress = (solved.length / riddles.length) * 100;
+  elements.gameElements.progressBar.style.width = `${progress}%`;
+}
+
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  levelStartTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - levelStartTime) / 1000);
+    elements.gameElements.levelTimer.textContent = `Time: ${elapsed}s`;
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  return Math.floor((Date.now() - levelStartTime) / 1000);
+}
+
 function loadLevel(level) {
   clearConfetti();
   const r = riddles[level - 1];
   currentLevel = level;
   userAnswer = "";
-  elements.gameElements.levelTitle.textContent = `Level ${level}`;
+  elements.gameElements.levelTitle.textContent = `Level ${ level }`;
   elements.gameElements.questionText.textContent = r.question;
   elements.gameElements.answerBox.textContent = "";
   elements.gameElements.resultMsg.textContent = "";
   elements.gameElements.resultMsg.className = "result";
+  updateProgressBar();
+  startTimer();
   showScreen("riddleScreen");
 }
 
@@ -616,12 +681,31 @@ function clearAnswer() {
   elements.gameElements.resultMsg.textContent = "";
 }
 
+function updateAchievements() {
+  const achievements = [
+    { name: "Novice", count: 10, emoji: "🏅" },
+    { name: "Master", count: 25, emoji: "🥇" },
+    { name: "Genius", count: 50, emoji: "🧠" }
+  ];
+  const list = elements.gameElements.achievementsList;
+  list.innerHTML = "";
+  achievements.forEach(ach => {
+    const li = document.createElement("li");
+    li.textContent = `${ach.emoji} ${ach.name}: Complete ${ach.count} levels`;
+    if (solved.length >= ach.count) {
+      li.classList.add("achieved");
+    }
+    list.appendChild(li);
+  });
+}
+
 function submitAnswer() {
   const r = riddles[currentLevel - 1];
   const msg = elements.gameElements.resultMsg;
   
   if (userAnswer === r.answer) {
-    msg.textContent = "🎉 Correct!";
+    const timeTaken = stopTimer();
+    msg.textContent = timeTaken < 30 ? "🎉 Brilliant! Solved in " + timeTaken + "s!" : "🎉 Correct!";
     msg.className = "result";
     playCorrectSound();
     
@@ -629,11 +713,12 @@ function submitAnswer() {
       if (!solved.includes(currentLevel)) {
         solved.push(currentLevel);
         localStorage.setItem("solvedLevels", JSON.stringify(solved));
+        updateAchievements();
       }
       currentLevel++;
       localStorage.setItem("currentLevel", currentLevel);
       playLevelCompleteSound();
-      renderLevels(); // Refresh level grid to unlock next level
+      renderLevels();
       setTimeout(() => {
         if (currentLevel <= riddles.length) {
           loadLevel(currentLevel);
@@ -661,6 +746,8 @@ function showHint() {
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
   elements.hintPopup.classList.add("active");
+  hintsUsed[currentLevel] = (hintsUsed[currentLevel] || 0) + 1;
+  localStorage.setItem("hintsUsed", JSON.stringify(hintsUsed));
 }
 
 function hideHintPopup() {
@@ -688,6 +775,7 @@ function fireConfetti(callback) {
   
   const particles = [];
   const colors = ['#6200EA', '#03DAC6', '#CF6679', '#FFD600', '#00B0FF'];
+  const useStars = Math.random() > 0.5; // Randomly choose stars or circles
   
   for (let i = 0; i < 100; i++) {
     particles.push({
@@ -713,7 +801,20 @@ function fireConfetti(callback) {
       
       ctx.fillStyle = p.color;
       ctx.beginPath();
-      ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+      if (useStars) {
+        // Draw star shape
+        const spikes = 5;
+        const outerRadius = p.size / 2;
+        const innerRadius = p.size / 4;
+        for (let i = 0; i < spikes * 2; i++) {
+          const radius = i % 2 === 0 ? outerRadius : innerRadius;
+          const angle = (i * Math.PI) / spikes;
+          ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+        }
+        ctx.closePath();
+      } else {
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+      }
       ctx.fill();
       
       ctx.restore();
@@ -742,6 +843,44 @@ function fireConfetti(callback) {
 function clearConfetti() {
   const ctx = elements.confettiCanvas.getContext("2d");
   ctx.clearRect(0, 0, elements.confettiCanvas.width, elements.confettiCanvas.height);
+}
+
+function initParticles() {
+  const canvas = elements.particleCanvas;
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  
+  const particles = [];
+  for (let i = 0; i < 50; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 3 + 1,
+      speedX: Math.random() * 0.5 - 0.25,
+      speedY: Math.random() * 0.5 - 0.25,
+      opacity: Math.random() * 0.3 + 0.1
+    });
+  }
+  
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(179, 136, 255, ${p.opacity})`;
+      ctx.fill();
+      
+      p.x += p.speedX;
+      p.y += p.speedY;
+      
+      if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  
+  animateParticles();
 }
 
 document.addEventListener("DOMContentLoaded", initGame);
