@@ -2,52 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#6200EA">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Math Riddles</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Roboto+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <div id="splash">
-      <h1 class="logo">🧠</h1>
-      <div class="splash-text">Math Riddles</div>
-    </div>
+  <div id="splash">
+    <div class="logo">🧠</div>
+    <div class="splash-text">Math Riddles</div>
+  </div>
+  <canvas id="confetti-canvas"></canvas>
 
+  <div class="container">
     <div id="homeScreen" class="screen active">
-      <div>
-        <h1>Math Riddles</h1>
-        <button id="playBtn" class="btn">▶ Play</button>
-        <button id="levelsBtn" class="btn">📚 Levels</button>
-        <button id="settingsBtn" class="btn">⚙️ Settings</button>
-        <button id="quitBtn" class="btn secondary">❌ Quit</button>
-      </div>
+      <h1>Math Riddles</h1>
+      <button id="playBtn" class="btn">▶ Play</button>
+      <button id="levelsBtn" class="btn secondary">📚 Levels</button>
+      <button id="settingsBtn" class="btn secondary">⚙️ Settings</button>
+      <button id="quitBtn" class="btn secondary">❌ Quit</button>
     </div>
 
     <div id="settingsScreen" class="screen">
       <h2>Settings</h2>
       <div class="toggle-container">
         <label for="musicToggle">🎵 Background Music</label>
-        <div class="switch">
+        <label class="switch">
           <input type="checkbox" id="musicToggle">
           <span class="slider"></span>
-        </div>
+        </label>
       </div>
       <div class="toggle-container">
         <label for="sfxToggle">🔊 Sound Effects</label>
-        <div class="switch">
+        <label class="switch">
           <input type="checkbox" id="sfxToggle">
           <span class="slider"></span>
-        </div>
+        </label>
       </div>
       <button id="backFromSettingsBtn" class="btn secondary">⬅ Back</button>
     </div>
 
     <div id="levelsScreen" class="screen">
       <h2>Select Level</h2>
-      <div id="levelButtons" class="level-grid"></div>
+      <div class="level-grid" id="levelButtons"></div>
       <button id="backFromLevelsBtn" class="btn secondary">⬅ Back</button>
     </div>
 
@@ -55,7 +52,7 @@
       <div class="game-content">
         <h2 id="levelTitle">Level</h2>
         <div class="question-container">
-          <div id="questionText"></div>
+          <p id="questionText"></p>
         </div>
         <div class="answer-box" id="answerBox"></div>
         <div class="result" id="resultMsg"></div>
@@ -73,8 +70,8 @@
           <button data-number="0">0</button>
           <button id="submitBtn" class="operator">✓</button>
         </div>
-        <button id="hintBtn" class="btn">Hint</button>
-        <button id="solutionBtn" class="btn">Solution</button>
+        <button id="hintBtn" class="btn secondary">Hint</button>
+        <button id="solutionBtn" class="btn secondary">Solution</button>
         <button id="backFromGameBtn" class="btn secondary">⬅ Back</button>
       </div>
     </div>
@@ -92,30 +89,28 @@
 
     <div id="hintPopup" class="popup">
       <div class="popup-content">
-        <div id="hintText" class="popup-message"></div>
-        <button id="closeHintBtn" class="btn secondary">OK</button>
+        <p class="popup-message" id="hintText"></p>
+        <button id="closeHintBtn" class="btn">OK</button>
       </div>
     </div>
 
     <div id="solutionPopup" class="popup">
       <div class="popup-content">
-        <div id="solutionText" class="popup-message"></div>
-        <button id="closeSolutionBtn" class="btn secondary">OK</button>
+        <p class="popup-message" id="solutionText"></p>
+        <button id="closeSolutionBtn" class="btn">OK</button>
       </div>
     </div>
-
-    <canvas id="confetti-canvas"></canvas>
   </div>
 
-  <audio id="bgMusic" loop src="https://cdn.pixabay.com/audio/2023/01/20/audio_6c3e234d10.mp3"></audio>
-  <audio id="clickSound" src="https://cdn.pixabay.com/audio/2022/05/13/14-22-39-251_1.mp3"></audio>
-  <audio id="correctSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_4b7e279614.mp3"></audio>
-  <audio id="wrongSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_1b0e7e8f7e.mp3"></audio>
-  <audio id="levelCompleteSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_3e4b7e9f8e.mp3"></audio>
-  <audio id="hintSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_5b7e7e9f8e.mp3"></audio>
-  <audio id="solutionSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_6b7e7e9f8e.mp3"></audio>
-  <audio id="screenTransitionSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_2b7e7e9f8e.mp3"></audio>
-  <audio id="buttonHoverSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_7b7e7e9f8e.mp3"></audio>
+  <audio id="bgMusic" loop src="bg-music.mp3"></audio>
+  <audio id="correctSound" src="correct-answer.mp3"></audio>
+  <audio id="wrongSound" src="wrong-answer.mp3"></audio>
+  <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2024/04/22/audio_0b2b7c1e74.mp3"></audio>
+  <audio id="levelCompleteSound" src="https://cdn.pixabay.com/download/audio/2023/12/27/audio_2c3f2b3c25.mp3"></audio>
+  <audio id="hintSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_8d0a2f1391.mp3"></audio>
+  <audio id="solutionSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_8d0a2f1391.mp3"></audio>
+  <audio id="screenTransitionSound" src="https://cdn.pixabay.com/download/audio/2024/04/22/audio_0b2b7c1e74.mp3"></audio>
+  <audio id="buttonHoverSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_8d0a2f1391.mp3"></audio>
 
   <script src="script.js"></script>
 </body>
