@@ -56,8 +56,8 @@ const riddles = [
   { 
     question: "What comes next in this sequence: 1, 11, 21, 1211, 111221, ...?", 
     answer: "312211", 
-    hint: "This is the 'look-and-say' sequence", 
-    solution: "1, one 1, two 1s, one 2 one 1, etc." 
+    hint: "1, one 1, two 1s, one 2 one 1, etc.", 
+    solution: "312211" 
   },
   {
     question: "How many times can you subtract 5 from 25?",
@@ -362,6 +362,7 @@ const elements = {
 };
 
 function initGame() {
+  // Set audio volumes
   elements.audio.bgMusic.volume = 0.3;
   elements.audio.click.volume = 0.6;
   elements.audio.correct.volume = 0.5;
@@ -372,6 +373,7 @@ function initGame() {
   elements.audio.screenTransition.volume = 0.4;
   elements.audio.buttonHover.volume = 0.3;
 
+  // Initialize music based on localStorage
   if (localStorage.getItem("music") !== "off") {
     elements.toggles.music.checked = true;
     setTimeout(() => {
@@ -385,6 +387,7 @@ function initGame() {
     elements.toggles.music.checked = false;
   }
 
+  // Initialize SFX toggle
   if (localStorage.getItem("sfx") !== "off") {
     elements.toggles.sfx.checked = true;
   } else {
@@ -394,6 +397,7 @@ function initGame() {
   setupEventListeners();
   renderLevels();
 
+  // Hide splash screen after 1.5s
   setTimeout(() => {
     elements.splash.style.display = "none";
   }, 1500);
@@ -422,7 +426,7 @@ function setupEventListeners() {
     
     const button = e.target.closest("button");
     if (button && button.dataset.number) {
-      press(parseInt(button.dataset.number));
+      press(button.dataset.number);
     }
     
     setTimeout(() => { isProcessingInput = false; }, 100);
@@ -435,10 +439,9 @@ function setupEventListeners() {
     const button = e.target.closest("button");
     if (button) {
       if (button.dataset.number) {
-        press(parseInt(button.dataset.number));
+        press(button.dataset.number);
       }
       button.classList.add("active");
-      triggerHapticFeedback();
     }
     
     setTimeout(() => { isProcessingInput = false; }, 100);
@@ -454,7 +457,6 @@ function setupEventListeners() {
   document.querySelectorAll(".btn").forEach(btn => {
     btn.addEventListener("mouseenter", () => playSound(elements.audio.buttonHover));
     btn.addEventListener("touchstart", () => {
-      triggerHapticFeedback();
       playSound(elements.audio.buttonHover);
     }, { passive: true });
   });
@@ -463,12 +465,6 @@ function setupEventListeners() {
   elements.toggles.sfx.addEventListener("change", toggleSFX);
   
   window.addEventListener("popstate", handleBackButton);
-}
-
-function triggerHapticFeedback() {
-  if ("vibrate" in navigator && elements.toggles.sfx.checked) {
-    navigator.vibrate(50);
-  }
 }
 
 function showQuitModal() {
@@ -569,15 +565,26 @@ function renderLevels() {
   const grid = elements.gameElements.levelButtons;
   grid.innerHTML = "";
   riddles.forEach((_, i) => {
+    const level = i + 1;
     const btn = document.createElement("button");
-    btn.textContent = i + 1;
-    btn.disabled = !solved.includes(i + 1) && (i + 1 !== currentLevel);
+    btn.textContent = level;
+    btn.classList.add("level-btn");
     
-    if (solved.includes(i + 1)) {
+    // Enable current level, solved levels, and the next level if the current level is solved
+    btn.disabled = !(solved.includes(level) || level === currentLevel || (level === currentLevel + 1 && solved.includes(currentLevel)));
+    
+    if (solved.includes(level)) {
       btn.classList.add("completed");
+      btn.innerHTML = `${level} <span class="check">✔</span>`;
+    } else if (level === currentLevel) {
+      btn.classList.add("current");
     }
     
-    btn.addEventListener("click", () => loadLevel(i + 1));
+    btn.addEventListener("click", () => {
+      if (!btn.disabled) {
+        loadLevel(level);
+      }
+    });
     grid.appendChild(btn);
   });
 }
@@ -626,9 +633,11 @@ function submitAnswer() {
       currentLevel++;
       localStorage.setItem("currentLevel", currentLevel);
       playLevelCompleteSound();
+      renderLevels(); // Refresh level grid to unlock next level
       setTimeout(() => {
-        if (currentLevel <= riddles.length) loadLevel(currentLevel);
-        else {
+        if (currentLevel <= riddles.length) {
+          loadLevel(currentLevel);
+        } else {
           alert("🎊 All levels completed!");
           showScreen('homeScreen');
         }
@@ -680,16 +689,16 @@ function fireConfetti(callback) {
   const particles = [];
   const colors = ['#6200EA', '#03DAC6', '#CF6679', '#FFD600', '#00B0FF'];
   
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 100; i++) {
     particles.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height - canvas.height,
-      size: Math.random() * 8 + 4,
+      size: Math.random() * 10 + 5,
       color: colors[Math.floor(Math.random() * colors.length)],
-      speed: Math.random() * 3 + 2,
+      speed: Math.random() * 4 + 3,
       angle: Math.random() * Math.PI * 2,
       rotation: Math.random() * 360,
-      rotationSpeed: Math.random() * 10 - 5
+      rotationSpeed: Math.random() * 12 - 6
     });
   }
   
@@ -703,7 +712,9 @@ function fireConfetti(callback) {
       ctx.rotate(p.rotation * Math.PI / 180);
       
       ctx.fillStyle = p.color;
-      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.beginPath();
+      ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+      ctx.fill();
       
       ctx.restore();
       
@@ -717,7 +728,7 @@ function fireConfetti(callback) {
     });
     
     frame++;
-    if (frame < 100) {
+    if (frame < 120) {
       requestAnimationFrame(anim);
     } else {
       clearConfetti();
