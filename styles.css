@@ -161,6 +161,19 @@ h2 {
   overflow: hidden;
 }
 
+.btn:disabled {
+  background: #555;
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+.light-theme .btn:disabled {
+  background: #B0B0B0;
+  color: #666;
+}
+
 .btn::after {
   content: '';
   position: absolute;
@@ -175,7 +188,7 @@ h2 {
   transform-origin: 50% 50%;
 }
 
-.btn:hover, .btn:focus {
+.btn:hover:not(:disabled), .btn:focus:not(:disabled) {
   background: var(--primary-dark);
   box-shadow: 0 5px 18px var(--glow-color);
   border: 2px solid var(--primary-light);
@@ -190,7 +203,7 @@ h2 {
   100% { transform: scale(40, 40); opacity: 0; }
 }
 
-.btn:active {
+.btn:active:not(:disabled) {
   transform: scale(0.98);
 }
 
@@ -199,12 +212,12 @@ h2 {
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
-.btn.secondary:hover {
+.btn.secondary:hover:not(:disabled) {
   background: #333;
   border: 2px solid var(--secondary);
 }
 
-.light-theme .btn.secondary:hover {
+.light-theme .btn.secondary:hover:not(:disabled) {
   background: #D1D5DB;
 }
 
