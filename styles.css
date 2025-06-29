@@ -20,7 +20,7 @@
 .light-theme {
   --bg-dark: #F5F5F5;
   --bg-light: #E0E0E0;
-  --surface: #FFFFFF;
+  --surface: #E8ECEF; /* Updated for better contrast in light mode */
   --text-primary: #1A1A1A; /* Darker for light background */
   --text-secondary: #4A4A4A; /* Darker gray for readability */
   --glow-color: rgba(3, 218, 198, 0.7);
@@ -93,6 +93,12 @@ body {
   position: relative;
   flex-direction: column;
   align-items: center;
+}
+
+.light-theme #levelsScreen,
+.light-theme #settingsScreen {
+  background: var(--surface); /* Distinct background for levels and settings in light mode */
+  border-radius: var(--border-radius);
 }
 
 .active {
@@ -199,7 +205,7 @@ h2 {
 }
 
 .light-theme .btn.secondary:hover {
-  background: #E0E0E0;
+  background: #D1D5DB;
 }
 
 #riddleScreen {
@@ -611,7 +617,7 @@ canvas#confetti-canvas {
 }
 
 .light-theme .modal {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6); /* Slightly darker for better contrast */
 }
 
 .modal.active {
@@ -667,7 +673,7 @@ canvas#confetti-canvas {
 }
 
 .light-theme .popup {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6); /* Match modal for consistency */
 }
 
 .popup.active {
