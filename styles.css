@@ -7,13 +7,23 @@
   --bg-dark: #121212;
   --bg-light: #1E1E1E;
   --surface: #252525;
-  --text-primary: #FFFFFF;
-  --text-secondary: #BDBDBD;
+  --text-primary: #F5F5F5; /* Softer white for better contrast */
+  --text-secondary: #D1D1D1; /* Brighter gray for readability */
   --font-main: 'Poppins', sans-serif;
   --font-mono: 'Roboto Mono', monospace;
   --key-size: min(14vw, 55px);
   --border-radius: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --glow-color: rgba(98, 0, 234, 0.7);
+}
+
+.light-theme {
+  --bg-dark: #F5F5F5;
+  --bg-light: #E0E0E0;
+  --surface: #FFFFFF;
+  --text-primary: #1A1A1A; /* Darker for light background */
+  --text-secondary: #4A4A4A; /* Darker gray for readability */
+  --glow-color: rgba(3, 218, 198, 0.7);
 }
 
 * {
@@ -39,9 +49,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(-45deg, #121212, #1A1A2E, #121212, #1E1E1E);
+  background: linear-gradient(-45deg, var(--bg-dark), #1A1A2E, var(--bg-dark), var(--bg-light));
   background-size: 400%;
   animation: gradientBG 15s ease infinite;
+}
+
+.light-theme body {
+  background: linear-gradient(-45deg, #F5F5F5, #E0E0E0, #F5F5F5, #E8ECEF);
 }
 
 @keyframes gradientBG {
@@ -95,14 +109,14 @@ body {
   text-align: center;
   margin: 20px 0 30px;
   font-weight: 700;
-  text-shadow: 0 0 12px rgba(98, 0, 234, 0.6);
+  text-shadow: 0 0 12px var(--glow-color);
   animation: glow 2s ease-in-out infinite;
 }
 
 @keyframes glow {
-  0% { text-shadow: 0 0 12px rgba(98, 0, 234, 0.6); }
-  50% { text-shadow: 0 0 18px rgba(98, 0, 234, 0.8); }
-  100% { text-shadow: 0 0 12px rgba(98, 0, 234, 0.6); }
+  0% { text-shadow: 0 0 12px var(--glow-color); }
+  50% { text-shadow: 0 0 18px var(--glow-color); }
+  100% { text-shadow: 0 0 12px var(--glow-color); }
 }
 
 #homeScreen .btn {
@@ -134,7 +148,7 @@ h2 {
   width: 100%;
   max-width: 280px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(98, 0, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: var(--transition);
   font-weight: 500;
   position: relative;
@@ -155,6 +169,12 @@ h2 {
   transform-origin: 50% 50%;
 }
 
+.btn:hover, .btn:focus {
+  background: var(--primary-dark);
+  box-shadow: 0 5px 18px var(--glow-color);
+  border: 2px solid var(--primary-light);
+}
+
 .btn:active::after {
   animation: ripple 0.6s ease-out;
 }
@@ -162,12 +182,6 @@ h2 {
 @keyframes ripple {
   0% { transform: scale(0, 0); opacity: 0.5; }
   100% { transform: scale(40, 40); opacity: 0; }
-}
-
-.btn:hover, .btn:focus {
-  background: var(--primary-dark);
-  box-shadow: 0 5px 18px rgba(98, 0, 234, 0.5);
-  transform: translateY(-2px);
 }
 
 .btn:active {
@@ -181,6 +195,11 @@ h2 {
 
 .btn.secondary:hover {
   background: #333;
+  border: 2px solid var(--secondary);
+}
+
+.light-theme .btn.secondary:hover {
+  background: #E0E0E0;
 }
 
 #riddleScreen {
@@ -203,6 +222,30 @@ h2 {
   padding: 0 12px;
 }
 
+.progress-bar {
+  width: 100%;
+  max-width: 400px;
+  height: 8px;
+  background: var(--bg-light);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.progress {
+  height: 100%;
+  background: var(--secondary);
+  width: 0;
+  transition: width 0.5s ease;
+}
+
+.timer {
+  font-size: clamp(12px, 3.5vw, 14px);
+  color: var(--text-secondary);
+  margin: 8px 0;
+  font-family: var(--font-mono);
+}
+
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -218,7 +261,7 @@ h2 {
   width: 100%;
   font-size: clamp(14px, 4vw, 18px);
   background: var(--surface);
-  color: white;
+  color: var(--text-primary);
   border: none;
   border-radius: var(--border-radius);
   transition: var(--transition);
@@ -230,6 +273,7 @@ h2 {
 .keypad button:hover {
   background: var(--primary-light);
   transform: translateY(-2px);
+  border: 2px solid var(--glow-color);
 }
 
 .keypad button:active {
@@ -254,10 +298,11 @@ h2 {
   font-family: var(--font-mono);
   font-weight: 500;
   letter-spacing: 1.5px;
-  text-shadow: 0 0 8px rgba(3, 218, 198, 0.4);
+  text-shadow: 0 0 8px var(--glow-color);
   background: rgba(3, 218, 198, 0.05);
   padding: 8px;
   border-radius: var(--border-radius);
+  border: 1px solid var(--secondary);
 }
 
 .result {
@@ -336,7 +381,8 @@ h2 {
 
 .level-btn:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(98, 0, 234, 0.5);
+  box-shadow: 0 4px 12px var(--glow-color);
+  border: 2px solid var(--primary-light);
 }
 
 .level-btn:active:not(:disabled) {
@@ -349,12 +395,24 @@ h2 {
   background: #333;
 }
 
+.light-theme .level-btn:disabled {
+  background: #B0B0B0;
+}
+
 .level-btn .check {
   font-size: 12px;
   position: absolute;
   top: 4px;
   right: 4px;
   color: var(--secondary);
+}
+
+.level-btn .hint-count {
+  font-size: 10px;
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  color: var(--text-secondary);
 }
 
 .toggle-container {
@@ -403,6 +461,10 @@ h2 {
   border-radius: 34px;
 }
 
+.light-theme .slider {
+  background-color: #B0B0B0;
+}
+
 .slider:before {
   position: absolute;
   content: "";
@@ -423,7 +485,17 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-canvas {
+canvas#particle-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+}
+
+canvas#confetti-canvas {
   position: fixed;
   top: 0;
   left: 0;
@@ -446,14 +518,18 @@ canvas {
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  animation: splashFade 1.5s ease-out forwards;
+  animation: splashFade 2s ease-out forwards;
+}
+
+.light-theme #splash {
+  background: linear-gradient(135deg, #F5F5F5, #E0E0E0);
 }
 
 .logo {
   font-size: clamp(50px, 18vw, 70px);
-  animation: logoAnim 2s ease-in-out infinite;
+  animation: pulse 2s ease-in-out infinite;
   margin-bottom: 16px;
-  text-shadow: 0 0 16px rgba(98, 0, 234, 0.7);
+  text-shadow: 0 0 16px var(--glow-color);
 }
 
 .splash-text {
@@ -463,13 +539,16 @@ canvas {
   opacity: 0;
   animation: textFadeIn 0.8s ease-out forwards;
   animation-delay: 0.4s;
+  background: linear-gradient(90deg, var(--primary-light), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-@keyframes logoAnim {
-  0% { transform: scale(1) rotate(0); }
-  30% { transform: scale(1.08) rotate(5deg); }
-  60% { transform: scale(0.95) rotate(-5deg); }
-  100% { transform: scale(1) rotate(0); }
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 @keyframes textFadeIn {
@@ -483,6 +562,41 @@ canvas {
   100% { opacity: 0; visibility: hidden; }
 }
 
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.achievements {
+  margin: 16px 0;
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+
+.achievements h3 {
+  font-size: clamp(16px, 4vw, 18px);
+  color: var(--primary-light);
+  margin-bottom: 8px;
+}
+
+.achievements ul {
+  list-style: none;
+  padding: 0;
+}
+
+.achievements li {
+  font-size: clamp(13px, 3.5vw, 15px);
+  color: var(--text-secondary);
+  margin: 8px 0;
+}
+
+.achievements li.achieved {
+  color: var(--secondary);
+  font-weight: 500;
+}
+
 .modal {
   display: none;
   position: fixed;
@@ -494,6 +608,10 @@ canvas {
   z-index: 3000;
   align-items: center;
   justify-content: center;
+}
+
+.light-theme .modal {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .modal.active {
@@ -546,6 +664,10 @@ canvas {
   z-index: 3100;
   align-items: center;
   justify-content: center;
+}
+
+.light-theme .popup {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .popup.active {
