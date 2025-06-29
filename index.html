@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
+  <canvas id="particle-canvas"></canvas>
   <div id="splash">
     <div class="logo">🧠</div>
     <div class="splash-text">Math Riddles</div>
@@ -39,6 +40,17 @@
           <span class="slider"></span>
         </label>
       </div>
+      <div class="toggle-container">
+        <label for="themeToggle">🌙 Theme (Light/Dark)</label>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="achievements">
+        <h3>Achievements</h3>
+        <ul id="achievementsList"></ul>
+      </div>
       <button id="backFromSettingsBtn" class="btn secondary">⬅ Back</button>
     </div>
 
@@ -51,6 +63,10 @@
     <div id="riddleScreen" class="screen">
       <div class="game-content">
         <h2 id="levelTitle">Level</h2>
+        <div class="progress-bar">
+          <div class="progress" id="progressBar"></div>
+        </div>
+        <div class="timer" id="levelTimer">Time: 0s</div>
         <div class="question-container">
           <p id="questionText"></p>
         </div>
