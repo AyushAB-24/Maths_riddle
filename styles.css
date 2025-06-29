@@ -12,7 +12,7 @@
   --font-main: 'Poppins', sans-serif;
   --font-mono: 'Roboto Mono', monospace;
   --key-size: min(14vw, 55px);
-  --border-radius: 10px;
+  --border-radius: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -78,6 +78,7 @@ body {
   background: transparent;
   position: relative;
   flex-direction: column;
+  align-items: center;
 }
 
 .active {
@@ -89,26 +90,35 @@ body {
 }
 
 #homeScreen h1 {
-  font-size: clamp(40px, 11vw, 52px);
+  font-size: clamp(42px, 12vw, 54px);
   color: var(--primary-light);
   text-align: center;
-  margin: 18px 0 28px;
+  margin: 20px 0 30px;
   font-weight: 700;
-  text-shadow: 0 0 10px rgba(98, 0, 234, 0.5);
+  text-shadow: 0 0 12px rgba(98, 0, 234, 0.6);
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0% { text-shadow: 0 0 12px rgba(98, 0, 234, 0.6); }
+  50% { text-shadow: 0 0 18px rgba(98, 0, 234, 0.8); }
+  100% { text-shadow: 0 0 12px rgba(98, 0, 234, 0.6); }
 }
 
 #homeScreen .btn {
   font-size: clamp(18px, 4.5vw, 22px);
   padding: 16px;
   margin: 10px auto;
-  max-width: 280px;
+  max-width: 300px;
+  position: relative;
+  overflow: hidden;
 }
 
 h2 {
-  font-size: clamp(18px, 4.5vw, 22px);
+  font-size: clamp(20px, 5vw, 24px);
   color: var(--primary-light);
   text-align: center;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   font-weight: 600;
 }
 
@@ -122,14 +132,13 @@ h2 {
   margin: 8px auto;
   display: block;
   width: 100%;
-  max-width: 260px;
+  max-width: 280px;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(98, 0, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(98, 0, 234, 0.4);
   transition: var(--transition);
   font-weight: 500;
   position: relative;
   overflow: hidden;
-  touch-action: manipulation;
 }
 
 .btn::after {
@@ -157,7 +166,8 @@ h2 {
 
 .btn:hover, .btn:focus {
   background: var(--primary-dark);
-  box-shadow: 0 4px 16px rgba(98, 0, 234, 0.4);
+  box-shadow: 0 5px 18px rgba(98, 0, 234, 0.5);
+  transform: translateY(-2px);
 }
 
 .btn:active {
@@ -179,8 +189,8 @@ h2 {
 }
 
 #riddleScreen h2 {
-  margin-bottom: 6px;
-  font-size: clamp(16px, 4.5vw, 20px);
+  margin-bottom: 8px;
+  font-size: clamp(18px, 4.8vw, 22px);
 }
 
 .game-content {
@@ -196,17 +206,17 @@ h2 {
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-  margin: 6px 0;
+  gap: 6px;
+  margin: 8px 0;
   padding: 0 6px;
   width: 100%;
-  max-width: 280px;
+  max-width: 300px;
 }
 
 .keypad button {
   height: var(--key-size);
   width: 100%;
-  font-size: clamp(13px, 3.8vw, 16px);
+  font-size: clamp(14px, 4vw, 18px);
   background: var(--surface);
   color: white;
   border: none;
@@ -214,7 +224,12 @@ h2 {
   transition: var(--transition);
   font-family: var(--font-mono);
   font-weight: 500;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.keypad button:hover {
+  background: var(--primary-light);
+  transform: translateY(-2px);
 }
 
 .keypad button:active {
@@ -226,27 +241,35 @@ h2 {
   background: var(--primary);
 }
 
+.keypad button.operator:hover {
+  background: var(--primary-dark);
+}
+
 .answer-box {
-  font-size: clamp(15px, 4.5vw, 18px);
+  font-size: clamp(16px, 4.8vw, 20px);
   color: var(--secondary);
-  margin: 6px;
-  min-height: 26px;
+  margin: 8px;
+  min-height: 28px;
   text-align: center;
   font-family: var(--font-mono);
   font-weight: 500;
-  letter-spacing: 1px;
-  text-shadow: 0 0 6px rgba(3, 218, 198, 0.3);
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 8px rgba(3, 218, 198, 0.4);
+  background: rgba(3, 218, 198, 0.05);
+  padding: 8px;
+  border-radius: var(--border-radius);
 }
 
 .result {
-  font-size: clamp(11px, 3.2vw, 13px);
-  margin: 6px 0;
-  min-height: 16px;
+  font-size: clamp(12px, 3.5vw, 14px);
+  margin: 8px 0;
+  min-height: 18px;
   text-align: center;
-  padding: 5px;
+  padding: 6px;
   border-radius: var(--border-radius);
   background: rgba(3, 218, 198, 0.1);
   color: var(--secondary);
+  transition: var(--transition);
 }
 
 .result.error {
@@ -256,17 +279,22 @@ h2 {
 
 .question-container {
   background: var(--surface);
-  padding: 10px;
+  padding: 12px;
   border-radius: var(--border-radius);
-  margin: 6px 0;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  margin: 8px 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
+  transition: transform 0.3s ease;
+}
+
+.question-container:hover {
+  transform: scale(1.02);
 }
 
 #questionText {
-  font-size: clamp(12px, 3.5vw, 14px);
-  line-height: 1.4;
+  font-size: clamp(13px, 3.8vw, 15px);
+  line-height: 1.5;
   text-align: center;
   color: var(--text-primary);
   margin: 0;
@@ -275,61 +303,86 @@ h2 {
 .level-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  margin: 14px 0;
-  padding: 0 6px;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 0 8px;
+  width: 100%;
+  max-width: 400px;
 }
 
-.level-grid button {
-  padding: 14px 0;
-  border-radius: 8px;
+.level-btn {
+  padding: 16px 0;
+  border-radius: 10px;
   background-color: var(--surface);
   color: var(--text-primary);
   border: none;
-  font-size: clamp(14px, 3.8vw, 16px);
+  font-size: clamp(15px, 4vw, 18px);
   transition: var(--transition);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
 }
 
-.level-grid button.completed {
+.level-btn.completed {
   background: var(--primary);
   color: white;
 }
 
-.level-grid button:active {
+.level-btn.current {
+  background: var(--primary-light);
+  color: var(--bg-dark);
+  font-weight: 600;
+}
+
+.level-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(98, 0, 234, 0.5);
+}
+
+.level-btn:active:not(:disabled) {
   transform: scale(0.95);
 }
 
-.level-grid button:disabled {
-  opacity: 0.5;
+.level-btn:disabled {
+  opacity: 0.4;
   cursor: default;
   background: #333;
+}
+
+.level-btn .check {
+  font-size: 12px;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: var(--secondary);
 }
 
 .toggle-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 12px 0;
-  padding: 8px 10px;
+  margin: 14px 0;
+  padding: 10px 12px;
   background: var(--surface);
   border-radius: var(--border-radius);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 400px;
 }
 
 .toggle-container label {
-  font-size: clamp(12px, 3.2vw, 14px);
+  font-size: clamp(13px, 3.5vw, 15px);
   color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .switch {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 22px;
+  width: 44px;
+  height: 24px;
 }
 
 .switch input {
@@ -353,8 +406,8 @@ h2 {
 .slider:before {
   position: absolute;
   content: "";
-  height: 16px;
-  width: 16px;
+  height: 18px;
+  width: 18px;
   left: 3px;
   bottom: 3px;
   background-color: white;
@@ -367,7 +420,7 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(18px);
+  transform: translateX(20px);
 }
 
 canvas {
@@ -397,16 +450,16 @@ canvas {
 }
 
 .logo {
-  font-size: clamp(48px, 16vw, 65px);
+  font-size: clamp(50px, 18vw, 70px);
   animation: logoAnim 2s ease-in-out infinite;
-  margin-bottom: 14px;
-  text-shadow: 0 0 14px rgba(98, 0, 234, 0.6);
+  margin-bottom: 16px;
+  text-shadow: 0 0 16px rgba(98, 0, 234, 0.7);
 }
 
 .splash-text {
-  font-size: clamp(16px, 4.5vw, 22px);
+  font-size: clamp(18px, 5vw, 24px);
   font-weight: 600;
-  margin-top: 14px;
+  margin-top: 16px;
   opacity: 0;
   animation: textFadeIn 0.8s ease-out forwards;
   animation-delay: 0.4s;
@@ -414,13 +467,13 @@ canvas {
 
 @keyframes logoAnim {
   0% { transform: scale(1) rotate(0); }
-  30% { transform: scale(1.06) rotate(4deg); }
-  60% { transform: scale(0.96) rotate(-4deg); }
+  30% { transform: scale(1.08) rotate(5deg); }
+  60% { transform: scale(0.95) rotate(-5deg); }
   100% { transform: scale(1) rotate(0); }
 }
 
 @keyframes textFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -450,36 +503,36 @@ canvas {
 
 .modal-content {
   background: var(--surface);
-  padding: 20px;
+  padding: 22px;
   border-radius: var(--border-radius);
-  max-width: 300px;
+  max-width: 320px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.4);
 }
 
 .modal-content h3 {
-  font-size: clamp(16px, 4.5vw, 20px);
+  font-size: clamp(18px, 5vw, 22px);
   color: var(--primary-light);
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 }
 
 .modal-content p {
-  font-size: clamp(12px, 3.5vw, 14px);
+  font-size: clamp(13px, 3.8vw, 15px);
   color: var(--text-secondary);
-  margin: 0 0 20px;
+  margin: 0 0 22px;
 }
 
 .modal-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
 }
 
 .modal-buttons .btn {
-  width: 120px;
-  padding: 10px;
-  font-size: clamp(13px, 3.5vw, 15px);
+  width: 130px;
+  padding: 12px;
+  font-size: clamp(14px, 3.8vw, 16px);
 }
 
 .popup {
@@ -502,19 +555,19 @@ canvas {
 
 .popup-content {
   background: var(--surface);
-  padding: 20px;
+  padding: 22px;
   border-radius: var(--border-radius);
-  max-width: 300px;
+  max-width: 320px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.4);
 }
 
 .popup-message {
-  font-size: clamp(14px, 3.5vw, 16px);
+  font-size: clamp(15px, 3.8vw, 17px);
   color: var(--text-primary);
-  margin-bottom: 20px;
-  line-height: 1.4;
+  margin-bottom: 22px;
+  line-height: 1.5;
 }
 
 @keyframes popupFadeIn {
@@ -524,7 +577,7 @@ canvas {
 
 @media (max-height: 700px) {
   #homeScreen h1 {
-    margin: 14px 0 22px;
+    margin: 16px 0 24px;
   }
   
   #homeScreen .btn {
@@ -534,7 +587,7 @@ canvas {
   
   .keypad {
     gap: 5px;
-    margin: 8px 0;
+    margin: 6px 0;
   }
   
   .keypad button {
@@ -548,24 +601,24 @@ canvas {
 
 @media (max-width: 400px) {
   .screen {
-    padding: 10px;
+    padding: 12px;
   }
   
   .level-grid {
-    gap: 5px;
+    gap: 6px;
   }
   
   .toggle-container {
-    padding: 6px 8px;
+    padding: 8px 10px;
   }
   
   .modal-content {
-    padding: 16px;
-    max-width: 280px;
+    padding: 18px;
+    max-width: 300px;
   }
   
   .popup-content {
-    padding: 16px;
-    max-width: 280px;
+    padding: 18px;
+    max-width: 300px;
   }
 }
