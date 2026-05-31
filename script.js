@@ -1,39 +1,45 @@
-// Global placeholders for Native Capacitor core modules
-let capacitorAdMob = null;
-let capacitorApp = null;
+// Global tracking references for Native Capacitor Ecosystem
+let nativeAdMob = null;
+let nativeAppInstance = null;
 
-// Framework Bootstrapper & Ecosystem Setup
+// Framework Bootstrapper & Ad System Setup
 document.addEventListener('deviceready', async () => {
-    // Check if running inside a compiled Native environment
+    // Safely resolve the native plugins from window context
     if (window.Capacitor && window.Capacitor.Plugins) {
-        capacitorAdMob = window.Capacitor.Plugins.AdMob;
-        capacitorApp = window.Capacitor.Plugins.App;
+        nativeAdMob = window.Capacitor.Plugins.AdMob;
+        nativeAppInstance = window.Capacitor.Plugins.App;
     }
 
-    if (capacitorAdMob) {
-        try {
-            // Initialize the AdMob engine using your live App ID
-            await capacitorAdMob.initialize({
-                requestTrackingAuthorization: true,
-                testingDevices: []
-            });
-            console.log("Capacitor AdMob engine initialized.");
+    // fallback mapping if global AdMob is injected directly
+    if (!nativeAdMob && typeof AdMob !== 'undefined') {
+        nativeAdMob = AdMob;
+    }
 
-            // Show a safe test version of your live banner
-            await capacitorAdMob.showBanner({
-                adId: 'ca-app-pub-1825832964235064/5196004433', // Your Live Banner Ad ID
+    if (nativeAdMob) {
+        try {
+            // Initialize the AdMob engine using your original App ID
+            await nativeAdMob.initialize({
+                requestTrackingAuthorization: true,
+                testingDevices: [],
+                initializeForTesting: false
+            });
+            console.log("Capacitor AdMob engine initialized successfully.");
+
+            // Show your live banner safely anchored at the bottom
+            await nativeAdMob.showBanner({
+                adId: 'ca-app-pub-1825832964235064/5196004433', // Original Live Banner Ad ID
                 position: 'BOTTOM',
                 margin: 0,
-                isTesting: true // Keep true until AdMob dashboard says "Ready"
+                isTesting: false // Live Mode
             });
             console.log("AdMob Banner displayed successfully.");
 
-            // Pre-load your live rewarded ad slot in test mode
-            await capacitorAdMob.prepareRewardAd({
-                adId: 'ca-app-pub-1825832964235064/8252422930', // Your Live Rewarded Ad ID
-                isTesting: true // Keep true until AdMob dashboard says "Ready"
+            // Pre-load your live rewarded ad slot
+            await nativeAdMob.prepareRewardAd({
+                adId: 'ca-app-pub-1825832964235064/8252422930', // Original Live Rewarded Ad ID
+                isTesting: false // Live Mode
             });
-            console.log("AdMob Rewarded Ad pre-loaded successfully.");
+            console.log("AdMob Rewarded Ad pre-loaded.");
 
         } catch (error) {
             console.error("AdMob initialization failed:", error);
@@ -534,13 +540,13 @@ function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  // Clean Capacitor application context exit engine
-  if (capacitorApp && capacitorApp.exitApp) {
-      capacitorApp.exitApp();
+  // Fully close the application context natively inside Capacitor 
+  if (nativeAppInstance && nativeAppInstance.exitApp) {
+      nativeAppInstance.exitApp();
   } else if (window.navigator && window.navigator.app && window.navigator.app.exitApp) {
       window.navigator.app.exitApp();
   } else {
-      showScreen("homeScreen");
+      window.close();
   }
 }
 
@@ -778,7 +784,7 @@ function submitAnswer() {
   }
 }
 
-// Show Hint wrapped with a Capacitor Rewarded Video Ad
+// Show Hint backed by Reward Ads and then show response
 async function showHint() {
   playClick();
   
@@ -786,17 +792,18 @@ async function showHint() {
     elements.audio.bgMusic.pause();
   }
 
-  if (capacitorAdMob) {
+  if (nativeAdMob) {
     try {
-      // Fixed syntax mapping method name requirement
-      await capacitorAdMob.showRewardVideoAd();
-      console.log("User successfully earned hint reward.");
+      // Execute the rewarded video sequence natively
+      await nativeAdMob.showRewardAd();
+      console.log("Ad completed, reward granted.");
     } catch (error) {
-      console.error("Ad failed, proceeding anyway:", error);
+      console.error("Ad video playback issue, continuing to fallback layout:", error);
     } finally {
-      await capacitorAdMob.prepareRewardAd({
+      // Refresh the cache buffer line item for subsequent turns
+      await nativeAdMob.prepareRewardAd({
         adId: 'ca-app-pub-1825832964235064/8252422930',
-        isTesting: true
+        isTesting: false
       }).catch(console.error);
     }
   }
@@ -820,7 +827,7 @@ function hideHintPopup() {
   elements.hintPopup.classList.remove("active");
 }
 
-// Show Solution wrapped with a Capacitor Rewarded Video Ad
+// Show Solution backed by Reward Ads and then show response
 async function showSolution() {
   playClick();
 
@@ -828,17 +835,18 @@ async function showSolution() {
     elements.audio.bgMusic.pause();
   }
 
-  if (capacitorAdMob) {
+  if (nativeAdMob) {
     try {
-      // Fixed syntax mapping method name requirement
-      await capacitorAdMob.showRewardVideoAd();
-      console.log("User successfully earned solution reward.");
+      // Execute the rewarded video sequence natively
+      await nativeAdMob.showRewardAd();
+      console.log("Ad completed, solution unlocked.");
     } catch (error) {
-      console.error("Ad failed, proceeding anyway:", error);
+      console.error("Ad playback issue, displaying solution immediately:", error);
     } finally {
-      await capacitorAdMob.prepareRewardAd({
+      // Refresh the cache buffer line item for subsequent turns
+      await nativeAdMob.prepareRewardAd({
         adId: 'ca-app-pub-1825832964235064/8252422930',
-        isTesting: true
+        isTesting: false
       }).catch(console.error);
     }
   }
