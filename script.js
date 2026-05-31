@@ -1,87 +1,84 @@
 // Global tracking properties using official Capacitor community standards
 let isRewardedAdCached = false;
 const REWARDED_AD_ID = 'ca-app-pub-1825832964235064/8252422930';
+const BANNER_AD_ID = 'ca-app-pub-1825832964235064/5196004433';
+
+let AdMob = null;
+let bannerIsShowing = false;
+let bannerRetryTimer = null;
+let bannerRetryDelay = 5000;
+
+// Safely destroy existing banner then show a fresh one
+async function showBannerAd() {
+    if (!AdMob) return;
+
+    // Cancel any pending retry
+    if (bannerRetryTimer) { clearTimeout(bannerRetryTimer); bannerRetryTimer = null; }
+
+    // Silently destroy any existing banner instance first
+    // (showBanner on an already-showing banner is a no-op in some plugin versions)
+    try { await AdMob.hideBanner(); } catch (_) {}
+    bannerIsShowing = false;
+
+    // Small delay after hide to let the native layer clean up
+    await new Promise(res => setTimeout(res, 300));
+
+    try {
+        await AdMob.showBanner({
+            adId: BANNER_AD_ID,
+            position: 'BOTTOM_CENTER',
+            margin: 0,
+            adSize: 'SMART_BANNER'
+        });
+        // bannerIsShowing set to true inside bannerAdLoaded listener
+    } catch (e) {
+        console.warn("showBanner failed:", e);
+        scheduleRetry();
+    }
+}
+
+function scheduleRetry() {
+    if (bannerRetryTimer) clearTimeout(bannerRetryTimer);
+    bannerRetryTimer = setTimeout(() => {
+        bannerRetryDelay = Math.min(bannerRetryDelay * 2, 60000);
+        showBannerAd();
+    }, bannerRetryDelay);
+}
 
 // Initialize Native Framework Handlers immediately upon Device Readiness
 document.addEventListener('deviceready', async () => {
-    // 1. Core Native AdMob Mapping Strategy
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         try {
-            const AdMob = window.Capacitor.Plugins.AdMob;
-            
-            // Core engine bootstrapping according to @capacitor-community/admob specs
-            await AdMob.initialize();
-            console.log("Native AdMob interface established successfully.");
+            AdMob = window.Capacitor.Plugins.AdMob;
 
-            // Banner ad — persistent bottom placement
-            const BANNER_AD_ID = 'ca-app-pub-1825832964235064/5196004433';
-            let bannerIsShowing = false;
-            let bannerRetryDelay = 10000; // start at 10s, backs off up to 60s
-
-            async function showBannerAd() {
-                try {
-                    // Always hide first — calling showBanner on an existing banner
-                    // silently fails in @capacitor-community/admob; hideBanner forces a fresh load
-                    try { await AdMob.hideBanner(); } catch (_) { /* no banner to hide, that's fine */ }
-                    bannerIsShowing = false;
-
-                    await AdMob.showBanner({
-                        adId: BANNER_AD_ID,
-                        position: 'BOTTOM_CENTER',
-                        margin: 0
-                    });
-                    bannerRetryDelay = 10000; // reset backoff on success
-                } catch (e) {
-                    console.warn("Banner show failed, retrying in", bannerRetryDelay / 1000, "s:", e);
-                    setTimeout(showBannerAd, bannerRetryDelay);
-                    bannerRetryDelay = Math.min(bannerRetryDelay * 2, 60000); // cap at 60s
-                }
-            }
-
+            // Register all banner listeners BEFORE initializing/showing
             AdMob.addListener('bannerAdLoaded', () => {
                 bannerIsShowing = true;
-                bannerRetryDelay = 10000;
-                console.log("Banner ad loaded and visible.");
+                bannerRetryDelay = 5000; // reset backoff on success
+                console.log("Banner loaded.");
             });
 
             AdMob.addListener('bannerAdFailedToLoad', (info) => {
                 bannerIsShowing = false;
-                console.warn("Banner failed to load:", info?.message, "— retrying in", bannerRetryDelay / 1000, "s");
-                setTimeout(showBannerAd, bannerRetryDelay);
-                bannerRetryDelay = Math.min(bannerRetryDelay * 2, 60000);
+                console.warn("Banner failed:", info?.message);
+                scheduleRetry();
             });
 
             AdMob.addListener('bannerAdOpened', () => { bannerIsShowing = true; });
 
             AdMob.addListener('bannerAdClosed', () => {
                 bannerIsShowing = false;
-                setTimeout(showBannerAd, 1000);
+                bannerRetryTimer = setTimeout(showBannerAd, 500);
             });
 
-            // Re-show banner every time app comes back to foreground
-            document.addEventListener('resume', () => {
-                console.log("App resumed — refreshing banner.");
-                showBannerAd();
-            });
-
-            // Also re-show if page becomes visible (handles WebView pause/resume edge cases)
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible' && !bannerIsShowing) {
-                    showBannerAd();
-                }
-            });
-
-            showBannerAd();
-
-            // Set up rewarded ad event listeners
+            // Rewarded ad listeners
             AdMob.addListener('rewardedAdLoaded', () => {
                 isRewardedAdCached = true;
-                console.log("Rewarded ad asset cached safely in memory.");
+                console.log("Rewarded ad cached.");
             });
 
-            AdMob.addListener('rewardedAdFailedToLoad', (info) => {
+            AdMob.addListener('rewardedAdFailedToLoad', () => {
                 isRewardedAdCached = false;
-                console.warn("Rewarded video failed to cache:", info.message);
             });
 
             AdMob.addListener('rewardedAdDismissed', () => {
@@ -89,12 +86,29 @@ document.addEventListener('deviceready', async () => {
                 preloadNextRewardedAd();
             });
 
-            // Cache the initial rewarded video tracking sequence
+            await AdMob.initialize();
+            console.log("AdMob initialized.");
+
+            // Show banner and preload rewarded
+            showBannerAd();
             preloadNextRewardedAd();
 
         } catch (adInitError) {
-            console.error("AdMob background mapping bypassed:", adInitError);
+            console.error("AdMob init failed:", adInitError);
         }
+    }
+});
+
+// Re-show banner when app comes back from background
+document.addEventListener('resume', () => {
+    bannerRetryDelay = 5000;
+    showBannerAd();
+});
+
+// Re-show banner on WebView visibility restore (multi-window / task switcher edge cases)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !bannerIsShowing) {
+        showBannerAd();
     }
 });
 
