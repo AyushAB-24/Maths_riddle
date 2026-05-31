@@ -63,7 +63,7 @@ jobs:
         fi
         
         # 2. Update your Banner Unit ID dynamically inside your JavaScript asset code
-        sed -i 's|adId:[[:space:]]*["'\''][^"'\'']*["'\'']|adId: "ca-app-pub-1825832964235064/9289493815"|g' dist/script.js
+        sed -i 's|adId:[[:space:]]*["'\''][^"'\'']*["'\'']|adId: "ca-app-pub-1825832964235064/5196004433"|g' dist/script.js
         
         # 3. Append the production initialization sequence to the asset package execution stack
         cat <<EOF >> dist/script.js
