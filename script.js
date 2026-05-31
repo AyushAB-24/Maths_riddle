@@ -4,55 +4,61 @@
 let isRewardedAdCached = false;
 const REWARDED_AD_ID = 'ca-app-pub-1825832964235064/8252422930';
 
-// Register core native environment configurations safely on load
+// Register core native environment configurations using standard deviceready listener
 document.addEventListener('deviceready', async () => {
     try {
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
-            const AdMob = window.Capacitor.Plugins.AdMob;
-            
+        // Match the layout configuration parameters of the 'capacitor-admob' plugin instance
+        if (typeof AdMob !== 'undefined') {
             // Core engine bootstrapping
-            await AdMob.initialize({ initializeForTesting: false });
-            console.log("Capacitor AdMob interface initialized successfully.");
+            await AdMob.initialize({ requestTrackingAuthorization: true });
+            console.log("AdMob Framework initialized successfully.");
 
             // Present the persistent bottom container banner anchoring your level layouts
             await AdMob.showBanner({
                 adId: 'ca-app-pub-1825832964235064/5196004433',
-                position: 'BOTTOM_CENTER',
+                adSize: 'BANNER',
+                position: 'BOTTOM',
                 margin: 0,
                 isTesting: false
             });
 
-            // Production Standard Listener Callbacks to control Hint availability states
-            AdMob.addListener('rewardedAdLoaded', () => {
-                isRewardedAdCached = true;
-                console.log("Rewarded tracking module cached an asset.");
+            // Set up ad tracking events safely
+            document.addEventListener('onAdLoaded', (data) => {
+                if (data.adType === 'rewardvideo') {
+                    isRewardedAdCached = true;
+                    console.log("Rewarded tracking module cached an asset.");
+                }
             });
 
-            AdMob.addListener('rewardedAdFailedToLoad', (info) => {
-                isRewardedAdCached = false;
-                console.warn("Rewarded video buffer skipped:", info.message);
+            document.addEventListener('onAdFailedToLoad', (data) => {
+                if (data.adType === 'rewardvideo') {
+                    isRewardedAdCached = false;
+                    console.warn("Rewarded video buffer skipped.");
+                }
             });
 
-            AdMob.addListener('rewardedAdDismissed', () => {
-                isRewardedAdCached = false;
-                preloadNextRewardedAd(); // Buffer next video slot instantly for upcoming hints
+            document.addEventListener('onAdDismissed', (data) => {
+                if (data.adType === 'rewardvideo') {
+                    isRewardedAdCached = false;
+                    preloadNextRewardedAd(); // Buffer next video slot instantly for upcoming hints
+                }
             });
 
             // Prime the initial ad unit caching lifecycle
             preloadNextRewardedAd();
         } else {
-            console.warn("AdMob plugin namespace not detected in this environment loop.");
+            console.warn("AdMob global namespace variable not detected in this environment loop.");
         }
     } catch (adError) {
         console.error("AdMob structural fallback mapping caught:", adError);
     }
 });
 
-// Preloader lifecycle mapping function
+// Preloader lifecycle mapping function matching your plugin signature
 async function preloadNextRewardedAd() {
     try {
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
-            await window.Capacitor.Plugins.AdMob.loadRewardedAd({
+        if (typeof AdMob !== 'undefined') {
+            await AdMob.loadRewardAd({
                 adId: REWARDED_AD_ID,
                 isTesting: false
             });
@@ -569,10 +575,11 @@ function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-      window.Capacitor.Plugins.App.exitApp();
-  } else if (navigator && navigator.app && navigator.app.exitApp) {
+  // Clean cross-platform layout termination routines
+  if (navigator && navigator.app && navigator.app.exitApp) {
       navigator.app.exitApp();
+  } else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.exitApp();
   } else {
       window.close();
   }
@@ -607,9 +614,6 @@ function toggleSFX() {
   }
 }
 
-// ==========================================
-// THEME SWITCH LOGIC
-// ==========================================
 function toggleTheme() {
   if (elements.toggles.theme.checked) {
     document.body.classList.add("light-theme");
@@ -745,9 +749,6 @@ function press(n) {
   elements.gameElements.resultMsg.textContent = "";
 }
 
-// ==========================================
-// CORE GAME MECHANICS HANDLERS
-// ==========================================
 function clearAnswer() {
   playClick();
   userAnswer = "";
@@ -826,23 +827,23 @@ async function showHint() {
     elements.audio.bgMusic.pause();
   }
 
-  // Intercept layout validation: Force ad play tracking ONLY for the Hint option
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
+  // Intercept layout configuration: play video ONLY for the Hint option
+  if (typeof AdMob !== 'undefined' && isRewardedAdCached) {
     try {
-      console.log("Playing Rewarded Video for Hint...");
-      await window.Capacitor.Plugins.AdMob.showRewardedAd();
+      console.log("Playing Rewarded Video for Hint via capacitor-admob standard signatures...");
+      await AdMob.showRewardAd();
     } catch (adError) {
       console.error("AdMob playback runtime error:", adError);
     }
   } else {
-    console.log("Ad asset not cached yet. Rendering fallback gracefully.");
+    console.log("Ad asset not cached yet. Rendering fallback cleanly.");
   }
 
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
-  // Fallback triggers smoothly to reveal content
+  // Show hint window layout safely
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
@@ -860,7 +861,7 @@ async function showHint() {
 function showSolution() {
   playClick();
 
-  // Instant display without querying the AdMob library
+  // Instant display without querying the AdMob plugin namespace loop
   playSolutionSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.solutionText.textContent = r.solution;
@@ -872,6 +873,7 @@ function hideHintPopup() {
   elements.hintPopup.classList.remove("active");
 }
 
+// FIX: Operational Closing Button Route
 function hideSolutionPopup() {
   playClick();
   elements.solutionPopup.classList.remove("active");
