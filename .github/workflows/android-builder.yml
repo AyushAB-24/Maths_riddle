@@ -1,4 +1,4 @@
-name: Build Android App with Cordova
+name: Build Modern Android App
 on:
   push:
     branches: [ main ]
@@ -15,50 +15,70 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Set up Java JDK 11
+    - name: Set up Java JDK 17
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
-        java-version: '11'
+        java-version: '17'
 
-    - name: Install Cordova CLI Global Tool
-      run: npm install -g cordova
-
-    - name: Initialize Clean Cordova App Shell
+    - name: Initialize Project Framework
       run: |
-        cordova create math-app com.ayush.mathsriddle "Math Riddles"
-        cd math-app
-        cordova platform add android@10.1.2
-        rm -rf www/*
+        rm -rf package.json package-lock.json node_modules
+        npm init -y
+        # Install core engine packages alongside the Babel code compiler
+        npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0 @babel/core @babel/cli @babel/preset-env
 
-    - name: Prepare HTML with Native Injection Layer
+    - name: Compile and Transpile Modern JS Syntax
       run: |
-        # This safely injects the cordova.js script tag right before the closing </head> tag 
-        # WITHOUT altering any of your actual UI containers, styles, or logic definitions.
+        # This converts modern syntax operators to older browser-safe equivalent logic
+        npx babel script.js --out-file compiled_script.js --presets=@babel/preset-env
+        
+        # Inject the cordova/capacitor hook safely into a cloud copy of your index.html
         sed 's/<\/head>/<script src="cordova.js"><\/script><\/head>/g' index.html > fixed_index.html
 
-    - name: Synchronize Original Web Files
+    - name: Construct Native App Bundle Directory
       run: |
-        # Copy your pristine assets safely into Cordova's delivery layer
-        cp fixed_index.html math-app/www/index.html
-        cp styles.css math-app/www/
-        cp script.js math-app/www/
-        
-        # Copy audio assets if present
-        cp *.mp3 math-app/www/ 2>/dev/null || true
+        mkdir dist
+        cp fixed_index.html dist/index.html
+        cp styles.css dist/styles.css
+        cp compiled_script.js dist/script.js
+        cp *.mp3 dist/ 2>/dev/null || true
 
-    - name: Install the Cordova AdMob Plugin Wrapper
+        # Build clean configuration file
+        cat <<EOF > capacitor.config.json
+        {
+          "appId": "com.ayush.mathsriddle",
+          "appName": "Math Riddles",
+          "webDir": "dist"
+        }
+        EOF
+
+    - name: Build Android Workspace Environments
       run: |
-        cd math-app
-        cordova plugin add cordova-plugin-admob-plus --variable APP_ID_ANDROID="ca-app-pub-3940256099942544~3347511713" --save
+        npm install @capacitor/android@6.0.0 @capacitor-community/admob@6.0.0
+        npx cap add android
+        npx cap sync android
+
+    - name: Inject AdMob Credentials and Namespace Fix
+      run: |
+        MANIFEST="android/app/src/main/AndroidManifest.xml"
+        if [ -f "$MANIFEST" ]; then
+          sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' "$MANIFEST"
+        fi
+        
+        GRADLE="android/app/build.gradle"
+        if [ -f "$GRADLE" ]; then
+          sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
+        fi
 
     - name: Compile Production APK File
       run: |
-        cd math-app
-        cordova build android --release --no-telemetry
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleRelease
 
     - name: Package Completed Application Target Artifact
       uses: actions/upload-artifact@v4
       with:
         name: math-riddles-apk
-        path: math-app/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
