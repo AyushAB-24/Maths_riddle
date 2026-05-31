@@ -21,64 +21,55 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Initialize Project Framework
+    - name: Initialize and Prepare Build
       run: |
-        rm -rf package.json package-lock.json node_modules
-        npm init -y
-        npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0 @babel/core @babel/cli @babel/preset-env
-
-    - name: Compile and Transpile Modern JS Syntax
-      run: |
-        npx babel script.js --out-file compiled_script.js --presets=@babel/preset-env
-        sed 's/<\/head>/<script src="cordova.js"><\/script><\/head>/g' index.html > fixed_index.html
-
-    - name: Construct Native App Bundle Directory
-      run: |
-        mkdir dist
-        cp fixed_index.html dist/index.html
+        npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0 @capacitor/android@6.0.0 @capacitor-community/admob@6.0.0
+        
+        # Create web directory for build
+        mkdir -p dist
+        cp index.html dist/index.html
         cp styles.css dist/styles.css
-        cp compiled_script.js dist/script.js
-        cp *.mp3 dist/ 2>/dev/null || true
-
+        cp script.js dist/script.js
+        
+        # Create config file
         cat <<EOF > capacitor.config.json
         {
           "appId": "com.ayush.mathsriddle",
           "appName": "Math Riddles",
-          "webDir": "dist"
+          "webDir": "dist",
+          "bundledWebRuntime": false
         }
         EOF
 
-    - name: Build Android Workspace Environments
+    - name: Sync Capacitor Android
       run: |
-        npm uninstall capacitor-admob --save
-        npm install @capacitor/android@6.0.0 @capacitor-community/admob@6.0.0 --save
-        npx cap add android
+        npx cap add android || true
         npx cap sync android
 
-    - name: Inject Production AdMob Credentials and Namespace Fix
+    - name: Inject AdMob and Namespace Fixes
       run: |
-        # 1. Inject your real live AdMob App ID into the Android Manifest
+        # 1. Inject AdMob ID into Manifest
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST" ]; then
           sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-1825832964235064~3094905301"/>' "$MANIFEST"
         fi
         
-        # 2. Sync updates into native folders
-        npx cap sync android
-        
-        # 3. Apply the standard system compilation namespace fix
+        # 2. Inject Namespace into build.gradle
         GRADLE="android/app/build.gradle"
         if [ -f "$GRADLE" ]; then
-          sed -i '/android {/a \\    namespace "com.ayush.mathsriddle"' "$GRADLE"
+          # Check if namespace exists to avoid duplication
+          if ! grep -q "namespace" "$GRADLE"; then
+            sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
+          fi
         fi
 
-    - name: Compile Autographed Debug APK File
+    - name: Compile APK
       run: |
         cd android
         chmod +x gradlew
         ./gradlew assembleDebug
 
-    - name: Package Completed Application Target Artifact
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: math-riddles-live-ads
