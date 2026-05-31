@@ -1,36 +1,64 @@
-// State Tracker for Native AdMob Engine
-let adMobEngineActive = false;
+// Global production-grade AdMob layout tracking properties
+let nativeAdMobPlugin = null;
+let isRewardedAdCached = false;
 
-// 1. ADMOB STATE ENGINE INITIALIZATION
-document.addEventListener('deviceready', () => {
-    // Access the correct plugin location for @capacitor-community/admob
+// Initialize Native Framework Handlers immediately upon Device Readiness
+document.addEventListener('deviceready', async () => {
+    // 1. Core Native AdMob Mapping Strategy
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
-        const nativeAdMob = window.Capacitor.Plugins.AdMob;
+        try {
+            nativeAdMobPlugin = window.Capacitor.Plugins.AdMob;
+            
+            // Core engine bootstrapping
+            await nativeAdMobPlugin.initialize({ initializeForTesting: false });
+            console.log("Native AdMob interface established successfully.");
 
-        // Initialize engine and preload cache slots immediately via background execution
-        nativeAdMob.initialize({ initializeForTesting: false })
-            .then(() => {
-                adMobEngineActive = true;
-                console.log("AdMob Engine Synchronized.");
+            // Display your production bottom banner ad anchor
+            await nativeAdMobPlugin.showBanner({
+                adId: 'ca-app-pub-1825832964235064/5196004433',
+                position: 'BOTTOM_CENTER',
+                margin: 0,
+                isTesting: false
+            });
 
-                // Launch persistent bottom banner
-                return nativeAdMob.showBanner({
-                    adId: 'ca-app-pub-1825832964235064/5196004433',
-                    position: 'BOTTOM_CENTER',
-                    margin: 0,
-                    isTesting: false
-                });
-            })
-            .then(() => {
-                // Prime the rewarded ad tracking cache buffer slot
-                return nativeAdMob.prepareRewardedAd({
-                    adId: 'ca-app-pub-1825832964235064/8252422930',
-                    isTesting: false
-                });
-            })
-            .catch(err => console.warn("AdMob initialization step bypassed:", err));
+            // Cache the initial rewarded video tracking sequence
+            preloadNextRewardedAd();
+
+            // Set up native event listeners to automatically manage the video cache state
+            nativeAdMobPlugin.addListener('rewardedAdLoaded', () => {
+                isRewardedAdCached = true;
+                console.log("Rewarded ad asset cached safely in memory.");
+            });
+
+            nativeAdMobPlugin.addListener('rewardedAdFailedToLoad', () => {
+                isRewardedAdCached = false;
+                console.warn("Rewarded video failed to cache. Bypassing state blocks smoothly.");
+            });
+
+            nativeAdMobPlugin.addListener('rewardedAdDismissed', () => {
+                isRewardedAdCached = false;
+                preloadNextRewardedAd(); // Instantly prepare the next unit for future levels
+            });
+
+        } catch (adInitError) {
+            console.error("AdMob background mapping bypassed:", adInitError);
+        }
     }
 });
+
+// Helper sequence to pre-load rewarded assets into memory safely
+async function preloadNextRewardedAd() {
+    if (nativeAdMobPlugin) {
+        try {
+            await nativeAdMobPlugin.prepareRewardedAd({
+                adId: 'ca-app-pub-1825832964235064/8252422930',
+                isTesting: false
+            });
+        } catch (e) {
+            console.log("Ad preload cycle caught cleanly:", e);
+        }
+    }
+}
 
 const riddles = [
   { 
@@ -316,7 +344,7 @@ const riddles = [
     solution: "0.5 / 0.25 is mathematically equivalent to 1/2 ÷ 1/4 = 2."
   },
   {
-    question: "A square has a side of 5 cm. What is its area?",
+    square: "A square has a side of 5 cm. What is its area?",
     answer: "25",
     hint: "Area of a square = side × side.",
     solution: "5 cm × 5 cm = 25 cm²."
@@ -521,25 +549,17 @@ function hideQuitModal() {
   elements.quitModal.classList.remove("active");
 }
 
-// 2. ALTERNATIVE APPROACH: HARDWARE BACK BUTTON INTENT FORCING
+// 2. NEW CAPACITOR NATIVE APPLICATION EXIT STRATEGY
 function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  // Inject synthetic empty history stacks and pop them instantly.
-  // This causes a depth overflow inside the native Android web view, 
-  // triggering the native browser to close the application container cleanly.
-  try {
-      window.history.go(-(window.history.length - 1));
-      setTimeout(() => {
-          // Fallback if state stack didn't fully clear
-          if (navigator.app && navigator.app.exitApp) {
-              navigator.app.exitApp();
-          } else {
-              window.close();
-          }
-      }, 50);
-  } catch (e) {
+  // Directly grab the native Capacitor App bundle namespace to enforce termination.
+  // This triggers a native finish() event inside the parent Android MainActivity layout.
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.exitApp();
+  } else {
+      // Direct absolute web fallback if plugin environment has a slight latency
       window.close();
   }
 }
@@ -778,7 +798,7 @@ function submitAnswer() {
   }
 }
 
-// 3. ALTERNATIVE REWARDED STATE HANDLING
+// 3. ENHANCED REWARDED DECOUPLED AD EXECUTION HANDLER
 async function showHint() {
   playClick();
   
@@ -786,27 +806,23 @@ async function showHint() {
     elements.audio.bgMusic.pause();
   }
 
-  // Isolated execution bucket: If AdMob fails, crashes, or is empty, 
-  // the catch block handles it gracefully and unlocks the screen immediately.
-  if (adMobEngineActive && window.Capacitor?.Plugins?.AdMob) {
+  // Check if native framework cache layout contains an asset ready to fire
+  if (nativeAdMobPlugin && isRewardedAdCached) {
     try {
-      await window.Capacitor.Plugins.AdMob.showRewardedAd();
-      console.log("Reward delivered via State Machine.");
+      await nativeAdMobPlugin.showRewardedAd();
+      console.log("Native video tracked and shown.");
     } catch (adError) {
-      console.error("Ad video failed to fire, granting access fallback:", adError);
-    } finally {
-      // Re-load slot so it's ready for the next level
-      window.Capacitor.Plugins.AdMob.prepareRewardedAd({
-        adId: 'ca-app-pub-1825832964235064/8252422930',
-        isTesting: false
-      }).catch(() => {});
+      console.error("Ad slot container runtime exception, bypassing safely:", adError);
     }
+  } else {
+    console.log("No ad cached or running locally. Granting content fallback bypass.");
   }
 
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
+  // Unified rendering block: Guarantees user receives their hint under any network layout condition
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
@@ -817,11 +833,6 @@ async function showHint() {
   renderLevels(); 
 }
 
-function hideHintPopup() {
-  playClick();
-  elements.hintPopup.classList.remove("active");
-}
-
 async function showSolution() {
   playClick();
 
@@ -829,18 +840,15 @@ async function showSolution() {
     elements.audio.bgMusic.pause();
   }
 
-  if (adMobEngineActive && window.Capacitor?.Plugins?.AdMob) {
+  if (nativeAdMobPlugin && isRewardedAdCached) {
     try {
-      await window.Capacitor.Plugins.AdMob.showRewardedAd();
-      console.log("Solution unlocked via State Machine.");
+      await nativeAdMobPlugin.showRewardedAd();
+      console.log("Native solution video tracked and shown.");
     } catch (adError) {
-      console.error("Ad video failed to fire, granting access fallback:", adError);
-    } finally {
-      window.Capacitor.Plugins.AdMob.prepareRewardedAd({
-        adId: 'ca-app-pub-1825832964235064/8252422930',
-        isTesting: false
-      }).catch(() => {});
+      console.error("Ad slot solution runtime exception, bypassing safely:", adError);
     }
+  } else {
+    console.log("No ad cached or running locally. Unlocking solution fallback.");
   }
 
   if (elements.toggles.music.checked) {
@@ -851,6 +859,11 @@ async function showSolution() {
   const r = riddles[currentLevel - 1];
   elements.gameElements.solutionText.textContent = r.solution;
   elements.solutionPopup.classList.add("active");
+}
+
+function hideHintPopup() {
+  playClick();
+  elements.hintPopup.classList.remove("active");
 }
 
 function hideSolutionPopup() {
