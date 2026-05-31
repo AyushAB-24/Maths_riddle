@@ -1,4 +1,4 @@
-name: Build Android App Wrapper
+name: Build Android App with Cordova
 on:
   push:
     branches: [ main ]
@@ -21,63 +21,43 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Dynamically Initialize Project Architecture
-      run: |
-        # Clear legacy locks to prevent package collisions
-        rm -rf package.json package-lock.json node_modules
-        
-        # Build clean core declarations
-        npm init -y
-        npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0
-        
-        # Create base profile link
-        cat <<EOF > capacitor.config.json
-        {
-          "appId": "com.ayush.mathsriddle",
-          "appName": "Math Riddles",
-          "webDir": "."
-        }
-        EOF
+    - name: Install Cordova CLI Global Tool
+      run: npm install -g cordova
 
-    - name: Construct Android Native Architecture
+    - name: Initialize Clean Cordova App Shell
       run: |
-        npm install @capacitor/android@6.0.0
-        npx cap add android
-
-    - name: Install and Register AdMob Library Packages
-      run: |
-        # Install the extension
-        npm install @capacitor-community/admob@6.0.0 --save-exact
+        # Create a fresh app wrapper project structure
+        cordova create math-app com.ayush.mathsriddle "Math Riddles"
+        cd math-app
         
-        # Sync immediately to write the native bridge hooks
-        npx cap sync android
-
-    - name: Inject AdMob App ID and Fix Android Namespace Config
-      run: |
-        # 1. Inject the AdMob application metadata tag into AndroidManifest
-        MANIFEST="android/app/src/main/AndroidManifest.xml"
-        if [ -f "$MANIFEST" ]; then
-          sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' "$MANIFEST"
-        else
-          echo "Error: AndroidManifest.xml missing!" && exit 1
-        fi
+        # Add the Android workspace engine template
+        cordova platform add android@12.0.0
         
-        # 2. Fix the missing namespace requirement for modern build systems
-        GRADLE="android/app/build.gradle"
-        if [ -f "$GRADLE" ]; then
-          sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
-        else
-          echo "Error: build.gradle missing!" && exit 1
-        fi
+        # Clear out default templates in the asset directory
+        rm -rf www/*
 
-    - name: Compile Unsigned Release APK File
+    - name: Synchronize Original Web Files
       run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleRelease
+        # Copy your completely untouched original code assets into Cordova's delivery layer
+        cp -r index.html styles.css script.js www/
+        
+        # Copy audio assets if they exist in your root directory
+        cp *.mp3 www/ 2>/dev/null || true
+
+    - name: Install the Cordova AdMob Plugin Wrapper
+      run: |
+        cd math-app
+        # This installs the global AdMob API which maps perfectly to 'AdMob' keywords in your JS layer
+        cordova plugin add cordova-plugin-admob-plus --variable APP_ID_ANDROID="ca-app-pub-3940256099942544~3347511713"
+
+    - name: Compile Production APK File
+      run: |
+        cd math-app
+        # Build the final installation package bundle
+        cordova build android --release --no-telemetry
 
     - name: Package Completed Application Target Artifact
       uses: actions/upload-artifact@v4
       with:
         name: math-riddles-apk
-        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: math-app/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
