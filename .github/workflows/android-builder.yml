@@ -30,7 +30,8 @@ jobs:
     - name: Compile and Transpile Modern JS Syntax
       run: |
         npx babel script.js --out-file compiled_script.js --presets=@babel/preset-env
-        sed 's/<\/head>/<script src="cordova.js"><\/script><\/head>/g' index.html > fixed_index.html
+        # Clean architecture setup: index.html remains untouched without breaking native injections
+        cp index.html fixed_index.html
 
     - name: Construct Native App Bundle Directory
       run: |
