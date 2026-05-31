@@ -1,4 +1,5 @@
 name: Build Production Android App with Live Ads
+
 on:
   push:
     branches: [ main ]
@@ -6,6 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -14,6 +16,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
 
     - name: Set up Java JDK 17
       uses: actions/setup-java@v4
@@ -21,55 +24,60 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Initialize and Prepare Build
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Prepare Web Assets
       run: |
-        npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0 @capacitor/android@6.0.0 @capacitor-community/admob@6.0.0
-        
-        # Create web directory for build
         mkdir -p dist
-        cp index.html dist/index.html
-        cp styles.css dist/styles.css
-        cp script.js dist/script.js
-        
-        # Create config file
-        cat <<EOF > capacitor.config.json
+        cp index.html styles.css script.js dist/
+        # Copy audio assets — required for in-app music and sound effects
+        cp bg-music.mp3 correct-answer.mp3 wrong-answer.mp3 dist/
+
+    - name: Create Capacitor Config
+      run: |
+        cat > capacitor.config.json << 'CAPEOF'
         {
           "appId": "com.ayush.mathsriddle",
           "appName": "Math Riddles",
           "webDir": "dist",
           "bundledWebRuntime": false
         }
-        EOF
+        CAPEOF
 
-    - name: Sync Capacitor Android
+    - name: Add & Sync Capacitor Android
       run: |
-        npx cap add android || true
+        # Only add android platform if it hasn't been added yet
+        if [ ! -d "android" ]; then
+          npx cap add android
+        fi
         npx cap sync android
 
-    - name: Inject AdMob and Namespace Fixes
+    - name: Inject AdMob App ID into Manifest
       run: |
-        # 1. Inject AdMob ID into Manifest
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST" ]; then
-          sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-1825832964235064~3094905301"/>' "$MANIFEST"
-        fi
-        
-        # 2. Inject Namespace into build.gradle
-        GRADLE="android/app/build.gradle"
-        if [ -f "$GRADLE" ]; then
-          # Check if namespace exists to avoid duplication
-          if ! grep -q "namespace" "$GRADLE"; then
-            sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
+          if ! grep -q "com.google.android.gms.ads.APPLICATION_ID" "$MANIFEST"; then
+            sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-1825832964235064~3094905301"/>\n    </application>|' "$MANIFEST"
           fi
         fi
 
-    - name: Compile APK
+    - name: Inject Namespace into build.gradle
+      run: |
+        GRADLE="android/app/build.gradle"
+        if [ -f "$GRADLE" ]; then
+          if ! grep -q "namespace" "$GRADLE"; then
+            sed -i '/android {/a\    namespace "com.ayush.mathsriddle"' "$GRADLE"
+          fi
+        fi
+
+    - name: Compile Debug APK
       run: |
         cd android
         chmod +x gradlew
         ./gradlew assembleDebug
 
-    - name: Upload Artifact
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: math-riddles-live-ads
