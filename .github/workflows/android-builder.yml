@@ -21,13 +21,16 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Clean Install NPM Packages
+    - name: Dynamically Initialize Project Architecture
       run: |
+        # Wipe old configuration fragments to prevent package clashes
+        rm -rf package.json package-lock.json node_modules
+        
+        # Build clean core declarations
         npm init -y
-        npm install @capacitor/core @capacitor/cli
-
-    - name: Create Base Capacitor Configuration File
-      run: |
+        npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0
+        
+        # Create the local environment profile link securely
         cat <<EOF > capacitor.config.json
         {
           "appId": "com.ayush.mathsriddle",
@@ -36,17 +39,21 @@ jobs:
         }
         EOF
 
-    - name: Install AdMob Plugin
-      run: npm install capacitor-admob
+    - name: Install Verified AdMob Library Ecosystem
+      run: |
+        # Force exact execution versions matching the compiler environment
+        npm install @capacitor-community/admob@6.0.0 --save-exact
 
     - name: Construct Android Native Architecture
-      run: npx cap add android
+      run: |
+        npm install @capacitor/android@6.0.0
+        npx cap add android
 
     - name: Inject AdMob App ID into Android Manifest Config
       run: |
         FILE="android/app/src/main/AndroidManifest.xml"
         if [ -f "$FILE" ]; then
-          # Places the required App ID inside the native application scope block
+          # Safe injection of placeholder AdMob App ID right before the closing application tag
           sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' "$FILE"
         else
           echo "Error: AndroidManifest.xml missing!" && exit 1
