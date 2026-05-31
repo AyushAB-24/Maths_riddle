@@ -1,26 +1,17 @@
 // Global tracking references for Native Capacitor Ecosystem
 let nativeAdMob = null;
-let nativeAppInstance = null;
 
 // Framework Bootstrapper & Ad System Setup
 document.addEventListener('deviceready', async () => {
-    // Safely resolve the native plugins from window context
+    // Safely resolve the native community plugins from window context
     if (window.Capacitor && window.Capacitor.Plugins) {
         nativeAdMob = window.Capacitor.Plugins.AdMob;
-        nativeAppInstance = window.Capacitor.Plugins.App;
-    }
-
-    // fallback mapping if global AdMob is injected directly
-    if (!nativeAdMob && typeof AdMob !== 'undefined') {
-        nativeAdMob = AdMob;
     }
 
     if (nativeAdMob) {
         try {
-            // Initialize the AdMob engine using your original App ID
+            // Initialize the AdMob engine using your original App ID configuration
             await nativeAdMob.initialize({
-                requestTrackingAuthorization: true,
-                testingDevices: [],
                 initializeForTesting: false
             });
             console.log("Capacitor AdMob engine initialized successfully.");
@@ -28,14 +19,14 @@ document.addEventListener('deviceready', async () => {
             // Show your live banner safely anchored at the bottom
             await nativeAdMob.showBanner({
                 adId: 'ca-app-pub-1825832964235064/5196004433', // Original Live Banner Ad ID
-                position: 'BOTTOM',
+                position: 'BOTTOM_CENTER',
                 margin: 0,
                 isTesting: false // Live Mode
             });
             console.log("AdMob Banner displayed successfully.");
 
-            // Pre-load your live rewarded ad slot
-            await nativeAdMob.prepareRewardAd({
+            // Pre-load your live rewarded ad slot ready for use
+            await nativeAdMob.prepareRewardedAd({
                 adId: 'ca-app-pub-1825832964235064/8252422930', // Original Live Rewarded Ad ID
                 isTesting: false // Live Mode
             });
@@ -540,11 +531,11 @@ function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  // Fully close the application context natively inside Capacitor 
-  if (nativeAppInstance && nativeAppInstance.exitApp) {
-      nativeAppInstance.exitApp();
-  } else if (window.navigator && window.navigator.app && window.navigator.app.exitApp) {
-      window.navigator.app.exitApp();
+  // Clean Native Container destruction mapping for Capacitor Framework Core
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.exitApp();
+  } else if (navigator.app && navigator.app.exitApp) {
+      navigator.app.exitApp();
   } else {
       window.close();
   }
@@ -794,14 +785,14 @@ async function showHint() {
 
   if (nativeAdMob) {
     try {
-      // Execute the rewarded video sequence natively
-      await nativeAdMob.showRewardAd();
+      // Corrected community plugin method configuration structure 
+      await nativeAdMob.showRewardedAd();
       console.log("Ad completed, reward granted.");
     } catch (error) {
-      console.error("Ad video playback issue, continuing to fallback layout:", error);
+      console.error("Ad video playback issue, bypassing logic directly:", error);
     } finally {
-      // Refresh the cache buffer line item for subsequent turns
-      await nativeAdMob.prepareRewardAd({
+      // Re-prepare cache slot ready for next requirement tracking cycle
+      await nativeAdMob.prepareRewardedAd({
         adId: 'ca-app-pub-1825832964235064/8252422930',
         isTesting: false
       }).catch(console.error);
@@ -837,14 +828,14 @@ async function showSolution() {
 
   if (nativeAdMob) {
     try {
-      // Execute the rewarded video sequence natively
-      await nativeAdMob.showRewardAd();
+      // Corrected community plugin method configuration structure 
+      await nativeAdMob.showRewardedAd();
       console.log("Ad completed, solution unlocked.");
     } catch (error) {
-      console.error("Ad playback issue, displaying solution immediately:", error);
+      console.error("Ad playback issue, bypassing logic directly:", error);
     } finally {
-      // Refresh the cache buffer line item for subsequent turns
-      await nativeAdMob.prepareRewardAd({
+      // Re-prepare cache slot ready for next requirement tracking cycle
+      await nativeAdMob.prepareRewardedAd({
         adId: 'ca-app-pub-1825832964235064/8252422930',
         isTesting: false
       }).catch(console.error);
