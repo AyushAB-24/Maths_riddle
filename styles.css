@@ -159,6 +159,9 @@ h2 {
   font-weight: 500;
   position: relative;
   overflow: hidden;
+  touch-action: manipulation;   /* eliminates 300ms double-tap delay on Android */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .btn:disabled {
@@ -287,6 +290,10 @@ h2 {
   font-family: var(--font-mono);
   font-weight: 500;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  touch-action: manipulation;   /* eliminates 300ms double-tap delay on Android */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  cursor: pointer;
 }
 
 .keypad button:hover {
