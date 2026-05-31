@@ -1,11 +1,13 @@
-// Global placeholder for Capacitor AdMob reference
+// Global placeholders for Native Capacitor core modules
 let capacitorAdMob = null;
+let capacitorApp = null;
 
-// Capacitor Framework Bootstrapper & AdMob Initialization
+// Framework Bootstrapper & Ecosystem Setup
 document.addEventListener('deviceready', async () => {
-    // Check if running inside a Capacitor/Native environment
+    // Check if running inside a compiled Native environment
     if (window.Capacitor && window.Capacitor.Plugins) {
         capacitorAdMob = window.Capacitor.Plugins.AdMob;
+        capacitorApp = window.Capacitor.Plugins.App;
     }
 
     if (capacitorAdMob) {
@@ -532,11 +534,11 @@ function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  // Use Native platform background process manager to exit safely
-  if (window.navigator && window.navigator.app && window.navigator.app.exitApp) {
+  // Clean Capacitor application context exit engine
+  if (capacitorApp && capacitorApp.exitApp) {
+      capacitorApp.exitApp();
+  } else if (window.navigator && window.navigator.app && window.navigator.app.exitApp) {
       window.navigator.app.exitApp();
-  } else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-      window.Capacitor.Plugins.App.exitApp();
   } else {
       showScreen("homeScreen");
   }
@@ -786,7 +788,8 @@ async function showHint() {
 
   if (capacitorAdMob) {
     try {
-      await capacitorAdMob.showRewardAd();
+      // Fixed syntax mapping method name requirement
+      await capacitorAdMob.showRewardVideoAd();
       console.log("User successfully earned hint reward.");
     } catch (error) {
       console.error("Ad failed, proceeding anyway:", error);
@@ -827,7 +830,8 @@ async function showSolution() {
 
   if (capacitorAdMob) {
     try {
-      await capacitorAdMob.showRewardAd();
+      // Fixed syntax mapping method name requirement
+      await capacitorAdMob.showRewardVideoAd();
       console.log("User successfully earned solution reward.");
     } catch (error) {
       console.error("Ad failed, proceeding anyway:", error);
