@@ -21,19 +21,16 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Install Dependencies
-      run: npm install
-
-    - name: Initialize Capacitor Configuration
+    - name: Initialize Project & Install Capacitor + AdMob
       run: |
+        npm init -y
+        npm install @capacitor/core @capacitor/cli
         npx cap init "Maths Riddle" "com.ayush.mathsriddle" --web-dir=.
-
-    - name: Add Android Platform Framework
-      run: npx cap add android
+        npm install capacitor-admob
+        npx cap add android
 
     - name: Inject AdMob App ID into Android Manifest
       run: |
-        # Injects a placeholder AdMob App ID. Swap for your real one (ca-app-pub-xxx~xxx) later
         sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' android/app/src/main/AndroidManifest.xml
 
     - name: Sync Files to Android Container
