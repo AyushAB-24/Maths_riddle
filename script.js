@@ -1,3 +1,24 @@
+// Add this at the very top or bottom of your script.js file
+document.addEventListener('deviceready', async () => {
+    if (typeof AdMob !== 'undefined') {
+        try {
+            // Initialize the AdMob engine
+            await AdMob.initialize({ requestTrackingAuthorization: true });
+
+            // Show a test banner ad safely anchored at the bottom
+            await AdMob.showBanner({
+                adId: 'ca-app-pub-3940256099942544/6300978111', // Google's official Test ID
+                adSize: 'BANNER',
+                position: 'BOTTOM',
+                margin: 0,
+                isTesting: true // Keep true until you submit to the store!
+            });
+            console.log("AdMob initialized successfully.");
+        } catch (error) {
+            console.error("AdMob failed to load:", error);
+        }
+    }
+});
 const riddles = [
   { 
     question: "I am a 2-digit number. When reversed, I become 27 more than my original value. My digits add up to 9. What number am I?", 
