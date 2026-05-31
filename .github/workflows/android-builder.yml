@@ -1,4 +1,4 @@
-name: Build Modern Android App
+name: Build Android App with Test Ads
 on:
   push:
     branches: [ main ]
@@ -54,27 +54,44 @@ jobs:
         npx cap add android
         npx cap sync android
 
-    - name: Inject AdMob Credentials and Namespace Fix
+    - name: Inject Google Test Ads and Namespace Fix
       run: |
+        # 1. Inject the standard Google Test App ID into the Manifest
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST" ]; then
           sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' "$MANIFEST"
         fi
         
+        # 2. Force-replace any hardcoded banner strings in your JS with the Google Test Banner ID
+        sed -i 's|adId:[[:space:]]*["'\''][^"'\'']*["'\'']|adId: "ca-app-pub-3940256099942544/6300978111"|g' dist/script.js
+        npx cap sync android
+        
+        # 3. Apply the system compilation namespace fix
         GRADLE="android/app/build.gradle"
         if [ -f "$GRADLE" ]; then
           sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
         fi
 
-    - name: Compile Autographed Debug APK File
+    - name: Compile Unsigned Release APK File
       run: |
         cd android
         chmod +x gradlew
-        # This compiles using the automatic internal Android system test keys
-        ./gradlew assembleDebug
+        ./gradlew assembleRelease
+
+    - name: Generate Local Keystore and Production Sign App
+      run: |
+        cd android/app/build/outputs/apk/release/
+        
+        # Generates a fresh structural verification signature profile template
+        keytool -genkey -v -keystore test-ads.keystore -alias test_ads_alias -keyalg RSA -keysize 2048 -validity 20000 -storepass testpass123 -keypass testpass123 -dname "CN=Ayush, OU=Testing, O=MathRiddles, L=Pune, S=MH, C=IN"
+        
+        # Signs the app using modern v2 signature protocols so your phone accepts it instantly
+        jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore test-ads.keystore -storepass testpass123 app-release-unsigned.apk test_ads_alias
+        
+        mv app-release-unsigned.apk math-riddles-test-ads.apk
 
     - name: Package Completed Application Target Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: math-riddles-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        name: math-riddles-test-apk
+        path: android/app/build/outputs/apk/release/math-riddles-test-ads.apk
