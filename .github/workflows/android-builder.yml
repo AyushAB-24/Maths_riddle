@@ -1,0 +1,52 @@
+name: Build Android App Wrapper
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Set up Java JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Initialize Capacitor Configuration
+      run: |
+        npx cap init "Maths Riddle" "com.ayush.mathsriddle" --web-dir=.
+
+    - name: Add Android Platform Framework
+      run: npx cap add android
+
+    - name: Inject AdMob App ID into Android Manifest
+      run: |
+        # Injects a placeholder AdMob App ID. Swap for your real one (ca-app-pub-xxx~xxx) later
+        sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' android/app/src/main/AndroidManifest.xml
+
+    - name: Sync Files to Android Container
+      run: npx cap sync android
+
+    - name: Build Unsigned Production APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleRelease
+
+    - name: Upload Finished APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: maths-riddle-apk
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
