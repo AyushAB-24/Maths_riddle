@@ -58,19 +58,15 @@ jobs:
     - name: Inject Production AdMob Credentials and Namespace Fix
       run: |
         # 1. Inject your real live AdMob App ID into the Android Manifest
-        MANIFEST="android/app/src/main/AndroidManifest.xml"
-        if [ -f "$MANIFEST" ]; then
-          sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-1825832964235064~3094905301"/>' "$MANIFEST"
-        fi
+        MANIFEST=\"android/app/src/main/AndroidManifest.xml\"
+        if [ -f \"$MANIFEST\" ]; then\n          sed -i '/<\\/application>/i \\        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-1825832964235064~3094905301\"/>' \"$MANIFEST\"\n        fi
         
-        # 2. Sync changes into the native project folder
+        # 2. Sync updates into the native package structures
         npx cap sync android
         
         # 3. Apply the standard system compilation namespace fix
-        GRADLE="android/app/build.gradle"
-        if [ -f "$GRADLE" ]; then
-          sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
-        fi
+        GRADLE=\"android/app/build.gradle\"
+        if [ -f \"$GRADLE\" ]; then\n          sed -i '/android {/a \\    namespace \"com.ayush.mathsriddle\"' \"$GRADLE\"\n        fi
 
     - name: Compile Autographed Debug APK File
       run: |
