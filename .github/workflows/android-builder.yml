@@ -15,45 +15,46 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Set up Java JDK 17
+    - name: Set up Java JDK 11
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
-        java-version: '17'
+        java-version: '11'
 
     - name: Install Cordova CLI Global Tool
       run: npm install -g cordova
 
     - name: Initialize Clean Cordova App Shell
       run: |
-        # Create a fresh app wrapper project structure
         cordova create math-app com.ayush.mathsriddle "Math Riddles"
         cd math-app
-        
-        # Add the Android workspace engine template
-        cordova platform add android@12.0.0
-        
-        # Clear out default templates in the asset directory
+        cordova platform add android@10.1.2
         rm -rf www/*
+
+    - name: Prepare HTML with Native Injection Layer
+      run: |
+        # This safely injects the cordova.js script tag right before the closing </head> tag 
+        # WITHOUT altering any of your actual UI containers, styles, or logic definitions.
+        sed 's/<\/head>/<script src="cordova.js"><\/script><\/head>/g' index.html > fixed_index.html
 
     - name: Synchronize Original Web Files
       run: |
-        # Copy your completely untouched original code assets into Cordova's delivery layer
-        cp -r index.html styles.css script.js www/
+        # Copy your pristine assets safely into Cordova's delivery layer
+        cp fixed_index.html math-app/www/index.html
+        cp styles.css math-app/www/
+        cp script.js math-app/www/
         
-        # Copy audio assets if they exist in your root directory
-        cp *.mp3 www/ 2>/dev/null || true
+        # Copy audio assets if present
+        cp *.mp3 math-app/www/ 2>/dev/null || true
 
     - name: Install the Cordova AdMob Plugin Wrapper
       run: |
         cd math-app
-        # This installs the global AdMob API which maps perfectly to 'AdMob' keywords in your JS layer
-        cordova plugin add cordova-plugin-admob-plus --variable APP_ID_ANDROID="ca-app-pub-3940256099942544~3347511713"
+        cordova plugin add cordova-plugin-admob-plus --variable APP_ID_ANDROID="ca-app-pub-3940256099942544~3347511713" --save
 
     - name: Compile Production APK File
       run: |
         cd math-app
-        # Build the final installation package bundle
         cordova build android --release --no-telemetry
 
     - name: Package Completed Application Target Artifact
