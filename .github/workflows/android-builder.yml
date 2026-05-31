@@ -23,14 +23,14 @@ jobs:
 
     - name: Dynamically Initialize Project Architecture
       run: |
-        # Wipe old configuration fragments to prevent package clashes
+        # Clear legacy locks to prevent package collisions
         rm -rf package.json package-lock.json node_modules
         
         # Build clean core declarations
         npm init -y
         npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0
         
-        # Create the local environment profile link securely
+        # Create base profile link
         cat <<EOF > capacitor.config.json
         {
           "appId": "com.ayush.mathsriddle",
@@ -39,18 +39,22 @@ jobs:
         }
         EOF
 
-    - name: Install Verified AdMob Library Ecosystem
-      run: |
-        npm install @capacitor-community/admob@6.0.0 --save-exact
-
     - name: Construct Android Native Architecture
       run: |
         npm install @capacitor/android@6.0.0
         npx cap add android
 
+    - name: Install and Register AdMob Library Packages
+      run: |
+        # Install the extension
+        npm install @capacitor-community/admob@6.0.0 --save-exact
+        
+        # Sync immediately to write the native bridge hooks
+        npx cap sync android
+
     - name: Inject AdMob App ID and Fix Android Namespace Config
       run: |
-        # 1. Inject the AdMob application metadata tag
+        # 1. Inject the AdMob application metadata tag into AndroidManifest
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST" ]; then
           sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' "$MANIFEST"
@@ -65,9 +69,6 @@ jobs:
         else
           echo "Error: build.gradle missing!" && exit 1
         fi
-
-    - name: Synchronize Game Assets to App Package
-      run: npx cap sync android
 
     - name: Compile Unsigned Release APK File
       run: |
