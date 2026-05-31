@@ -10,7 +10,7 @@ document.addEventListener('deviceready', async () => {
             const AdMob = window.Capacitor.Plugins.AdMob;
             
             // Core engine bootstrapping according to @capacitor-community/admob specs
-            await AdMob.initialize({ initializeForTesting: false });
+            await AdMob.initialize();
             console.log("Native AdMob interface established successfully.");
 
             // Banner ad — persistent bottom placement
@@ -28,8 +28,7 @@ document.addEventListener('deviceready', async () => {
                     await AdMob.showBanner({
                         adId: BANNER_AD_ID,
                         position: 'BOTTOM_CENTER',
-                        margin: 0,
-                        isTesting: false
+                        margin: 0
                     });
                     bannerRetryDelay = 10000; // reset backoff on success
                 } catch (e) {
@@ -104,8 +103,7 @@ async function preloadNextRewardedAd() {
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         try {
             await window.Capacitor.Plugins.AdMob.loadRewardedAd({
-                adId: REWARDED_AD_ID,
-                isTesting: false
+                adId: REWARDED_AD_ID
             });
         } catch (e) {
             console.log("Ad preload cycle caught cleanly:", e);
