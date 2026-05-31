@@ -13,47 +13,63 @@ document.addEventListener('deviceready', async () => {
             await AdMob.initialize({ initializeForTesting: false });
             console.log("Native AdMob interface established successfully.");
 
-            // Display production bottom banner ad anchor
+            // Banner ad — persistent bottom placement
             const BANNER_AD_ID = 'ca-app-pub-1825832964235064/5196004433';
             let bannerIsShowing = false;
+            let bannerRetryDelay = 10000; // start at 10s, backs off up to 60s
 
             async function showBannerAd() {
-                if (bannerIsShowing) return;
                 try {
+                    // Always hide first — calling showBanner on an existing banner
+                    // silently fails in @capacitor-community/admob; hideBanner forces a fresh load
+                    try { await AdMob.hideBanner(); } catch (_) { /* no banner to hide, that's fine */ }
+                    bannerIsShowing = false;
+
                     await AdMob.showBanner({
                         adId: BANNER_AD_ID,
                         position: 'BOTTOM_CENTER',
                         margin: 0,
                         isTesting: false
                     });
+                    bannerRetryDelay = 10000; // reset backoff on success
                 } catch (e) {
-                    console.warn("Banner show failed, retrying in 30s:", e);
-                    setTimeout(showBannerAd, 30000);
+                    console.warn("Banner show failed, retrying in", bannerRetryDelay / 1000, "s:", e);
+                    setTimeout(showBannerAd, bannerRetryDelay);
+                    bannerRetryDelay = Math.min(bannerRetryDelay * 2, 60000); // cap at 60s
                 }
             }
 
-            // Track banner visibility state via listeners
             AdMob.addListener('bannerAdLoaded', () => {
                 bannerIsShowing = true;
-                console.log("Banner ad loaded.");
+                bannerRetryDelay = 10000;
+                console.log("Banner ad loaded and visible.");
             });
 
             AdMob.addListener('bannerAdFailedToLoad', (info) => {
                 bannerIsShowing = false;
-                console.warn("Banner failed to load:", info.message, "— retrying in 30s");
-                setTimeout(showBannerAd, 30000);
+                console.warn("Banner failed to load:", info?.message, "— retrying in", bannerRetryDelay / 1000, "s");
+                setTimeout(showBannerAd, bannerRetryDelay);
+                bannerRetryDelay = Math.min(bannerRetryDelay * 2, 60000);
             });
 
             AdMob.addListener('bannerAdOpened', () => { bannerIsShowing = true; });
+
             AdMob.addListener('bannerAdClosed', () => {
                 bannerIsShowing = false;
-                // Re-show banner after user closes it
                 setTimeout(showBannerAd, 1000);
             });
 
-            // Re-show banner when app comes back to foreground
+            // Re-show banner every time app comes back to foreground
             document.addEventListener('resume', () => {
-                if (!bannerIsShowing) showBannerAd();
+                console.log("App resumed — refreshing banner.");
+                showBannerAd();
+            });
+
+            // Also re-show if page becomes visible (handles WebView pause/resume edge cases)
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && !bannerIsShowing) {
+                    showBannerAd();
+                }
             });
 
             showBannerAd();
