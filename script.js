@@ -13,15 +13,52 @@ document.addEventListener('deviceready', async () => {
             await AdMob.initialize({ initializeForTesting: false });
             console.log("Native AdMob interface established successfully.");
 
-            // Display your production bottom banner ad anchor
-            await AdMob.showBanner({
-                adId: 'ca-app-pub-1825832964235064/5196004433',
-                position: 'BOTTOM_CENTER',
-                margin: 0,
-                isTesting: false
+            // Display production bottom banner ad anchor
+            const BANNER_AD_ID = 'ca-app-pub-1825832964235064/5196004433';
+            let bannerIsShowing = false;
+
+            async function showBannerAd() {
+                if (bannerIsShowing) return;
+                try {
+                    await AdMob.showBanner({
+                        adId: BANNER_AD_ID,
+                        position: 'BOTTOM_CENTER',
+                        margin: 0,
+                        isTesting: false
+                    });
+                } catch (e) {
+                    console.warn("Banner show failed, retrying in 30s:", e);
+                    setTimeout(showBannerAd, 30000);
+                }
+            }
+
+            // Track banner visibility state via listeners
+            AdMob.addListener('bannerAdLoaded', () => {
+                bannerIsShowing = true;
+                console.log("Banner ad loaded.");
             });
 
-            // Set up native event listeners BEFORE loading ads to accurately track cached states
+            AdMob.addListener('bannerAdFailedToLoad', (info) => {
+                bannerIsShowing = false;
+                console.warn("Banner failed to load:", info.message, "— retrying in 30s");
+                setTimeout(showBannerAd, 30000);
+            });
+
+            AdMob.addListener('bannerAdOpened', () => { bannerIsShowing = true; });
+            AdMob.addListener('bannerAdClosed', () => {
+                bannerIsShowing = false;
+                // Re-show banner after user closes it
+                setTimeout(showBannerAd, 1000);
+            });
+
+            // Re-show banner when app comes back to foreground
+            document.addEventListener('resume', () => {
+                if (!bannerIsShowing) showBannerAd();
+            });
+
+            showBannerAd();
+
+            // Set up rewarded ad event listeners
             AdMob.addListener('rewardedAdLoaded', () => {
                 isRewardedAdCached = true;
                 console.log("Rewarded ad asset cached safely in memory.");
@@ -34,7 +71,7 @@ document.addEventListener('deviceready', async () => {
 
             AdMob.addListener('rewardedAdDismissed', () => {
                 isRewardedAdCached = false;
-                preloadNextRewardedAd(); // Instantly prepare the next unit for future levels
+                preloadNextRewardedAd();
             });
 
             // Cache the initial rewarded video tracking sequence
@@ -481,21 +518,32 @@ function initGame() {
 }
 
 function setupEventListeners() {
-  elements.buttons.play.addEventListener("click", startGame);
-  elements.buttons.levels.addEventListener("click", () => showScreen("levelsScreen"));
-  elements.buttons.settings.addEventListener("click", () => showScreen("settingsScreen"));
-  elements.buttons.quit.addEventListener("click", showQuitModal);
-  elements.buttons.backFromSettings.addEventListener("click", () => showScreen("homeScreen"));
-  elements.buttons.backFromLevels.addEventListener("click", () => showScreen("homeScreen"));
-  elements.buttons.backFromGame.addEventListener("click", () => showScreen("homeScreen"));
-  elements.buttons.clear.addEventListener("click", clearAnswer);
-  elements.buttons.submit.addEventListener("click", submitAnswer);
-  elements.buttons.hint.addEventListener("click", showHint);
-  elements.buttons.solution.addEventListener("click", showSolution);
-  elements.buttons.confirmQuit.addEventListener("click", confirmQuit);
-  elements.buttons.cancelQuit.addEventListener("click", hideQuitModal);
-  elements.buttons.closeHint.addEventListener("click", hideHintPopup);
-  elements.buttons.closeSolution.addEventListener("click", hideSolutionPopup);
+  // Wraps a handler so it can't fire again within 400ms — prevents double-tap on Android
+  function once(fn, delay = 400) {
+    let blocked = false;
+    return function (...args) {
+      if (blocked) return;
+      blocked = true;
+      fn.apply(this, args);
+      setTimeout(() => { blocked = false; }, delay);
+    };
+  }
+
+  elements.buttons.play.addEventListener("click", once(startGame));
+  elements.buttons.levels.addEventListener("click", once(() => showScreen("levelsScreen")));
+  elements.buttons.settings.addEventListener("click", once(() => showScreen("settingsScreen")));
+  elements.buttons.quit.addEventListener("click", once(showQuitModal));
+  elements.buttons.backFromSettings.addEventListener("click", once(() => showScreen("homeScreen")));
+  elements.buttons.backFromLevels.addEventListener("click", once(() => showScreen("homeScreen")));
+  elements.buttons.backFromGame.addEventListener("click", once(() => showScreen("homeScreen")));
+  elements.buttons.clear.addEventListener("click", once(clearAnswer, 200));
+  elements.buttons.submit.addEventListener("click", once(submitAnswer, 600));
+  elements.buttons.hint.addEventListener("click", once(showHint));
+  elements.buttons.solution.addEventListener("click", once(showSolution));
+  elements.buttons.confirmQuit.addEventListener("click", once(confirmQuit));
+  elements.buttons.cancelQuit.addEventListener("click", once(hideQuitModal));
+  elements.buttons.closeHint.addEventListener("click", once(hideHintPopup));
+  elements.buttons.closeSolution.addEventListener("click", once(hideSolutionPopup));
 
   document.querySelector(".keypad").addEventListener("click", (e) => {
     if (isProcessingInput) return;
@@ -508,6 +556,7 @@ function setupEventListeners() {
   });
 
   document.querySelector(".keypad").addEventListener("touchstart", (e) => {
+    e.preventDefault(); // Prevents the 300ms delayed synthetic 'click' event on mobile
     if (isProcessingInput) return;
     isProcessingInput = true;
     const button = e.target.closest("button");
@@ -517,8 +566,8 @@ function setupEventListeners() {
       }
       button.classList.add("active");
     }
-    setTimeout(() => { isProcessingInput = false; }, 100);
-  }, { passive: true });
+    setTimeout(() => { isProcessingInput = false; }, 150);
+  });
 
   document.querySelector(".keypad").addEventListener("touchend", (e) => {
     const button = e.target.closest("button");
