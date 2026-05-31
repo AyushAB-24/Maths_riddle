@@ -630,7 +630,7 @@ canvas#confetti-canvas {
 }
 
 .light-theme .modal {
-  background: rgba(0, 0, 0, 0.6); /* Slightly darker for better contrast */
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .modal.active {
@@ -686,7 +686,7 @@ canvas#confetti-canvas {
 }
 
 .light-theme .popup {
-  background: rgba(0, 0, 0, 0.6); /* Match modal for consistency */
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .popup.active {
