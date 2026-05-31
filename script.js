@@ -344,7 +344,7 @@ const riddles = [
     solution: "0.5 / 0.25 is mathematically equivalent to 1/2 ÷ 1/4 = 2."
   },
   {
-    square: "A square has a side of 5 cm. What is its area?",
+    question: "A square has a side of 5 cm. What is its area?",
     answer: "25",
     hint: "Area of a square = side × side.",
     solution: "5 cm × 5 cm = 25 cm²."
@@ -442,15 +442,17 @@ function initGame() {
   elements.audio.screenTransition.volume = 0.4;
   elements.audio.buttonHover.volume = 0.2;
 
-  if (localStorage.getItem("music") !== "off") {
+  const musicPref = localStorage.getItem("music");
+  if (musicPref !== "off") {
     elements.toggles.music.checked = true;
-    setTimeout(() => {
-      elements.audio.bgMusic.play().catch(e => {
-        document.addEventListener('click', () => {
-          elements.audio.bgMusic.play().catch(console.error);
-        }, { once: true });
-      });
-    }, 1500);
+    // Browsers block autoplay before user interaction — start on first tap/click
+    const startMusicOnInteraction = () => {
+      elements.audio.bgMusic.play().catch(console.error);
+    };
+    elements.audio.bgMusic.play().catch(() => {
+      document.addEventListener('click', startMusicOnInteraction, { once: true });
+      document.addEventListener('touchstart', startMusicOnInteraction, { once: true });
+    });
   } else {
     elements.toggles.music.checked = false;
   }
@@ -554,11 +556,16 @@ function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  // Explicitly reference the standard @capacitor/app namespace to terminate application
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-      window.Capacitor.Plugins.App.exitApp();
+    window.Capacitor.Plugins.App.exitApp();
   } else {
-      window.close();
+    // In a browser, window.close() only works if the tab was opened by a script.
+    // Attempt it, and fall back to a friendly home-screen redirect.
+    const closed = window.close();
+    if (closed === undefined) {
+      // window.close() was blocked — navigate to home screen as fallback
+      showScreen("homeScreen");
+    }
   }
 }
 
