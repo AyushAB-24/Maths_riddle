@@ -1,44 +1,44 @@
-// Global production-grade AdMob layout tracking properties
-let nativeAdMobPlugin = null;
+// Global tracking properties using official Capacitor community standards
 let isRewardedAdCached = false;
+const REWARDED_AD_ID = 'ca-app-pub-1825832964235064/8252422930';
 
 // Initialize Native Framework Handlers immediately upon Device Readiness
 document.addEventListener('deviceready', async () => {
     // 1. Core Native AdMob Mapping Strategy
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         try {
-            nativeAdMobPlugin = window.Capacitor.Plugins.AdMob;
+            const AdMob = window.Capacitor.Plugins.AdMob;
             
-            // Core engine bootstrapping
-            await nativeAdMobPlugin.initialize({ initializeForTesting: false });
+            // Core engine bootstrapping according to @capacitor-community/admob specs
+            await AdMob.initialize({ initializeForTesting: false });
             console.log("Native AdMob interface established successfully.");
 
             // Display your production bottom banner ad anchor
-            await nativeAdMobPlugin.showBanner({
+            await AdMob.showBanner({
                 adId: 'ca-app-pub-1825832964235064/5196004433',
                 position: 'BOTTOM_CENTER',
                 margin: 0,
                 isTesting: false
             });
 
-            // Cache the initial rewarded video tracking sequence
-            preloadNextRewardedAd();
-
-            // Set up native event listeners to automatically manage the video cache state
-            nativeAdMobPlugin.addListener('rewardedAdLoaded', () => {
+            // Set up native event listeners BEFORE loading ads to accurately track cached states
+            AdMob.addListener('rewardedAdLoaded', () => {
                 isRewardedAdCached = true;
                 console.log("Rewarded ad asset cached safely in memory.");
             });
 
-            nativeAdMobPlugin.addListener('rewardedAdFailedToLoad', () => {
+            AdMob.addListener('rewardedAdFailedToLoad', (info) => {
                 isRewardedAdCached = false;
-                console.warn("Rewarded video failed to cache. Bypassing state blocks smoothly.");
+                console.warn("Rewarded video failed to cache:", info.message);
             });
 
-            nativeAdMobPlugin.addListener('rewardedAdDismissed', () => {
+            AdMob.addListener('rewardedAdDismissed', () => {
                 isRewardedAdCached = false;
                 preloadNextRewardedAd(); // Instantly prepare the next unit for future levels
             });
+
+            // Cache the initial rewarded video tracking sequence
+            preloadNextRewardedAd();
 
         } catch (adInitError) {
             console.error("AdMob background mapping bypassed:", adInitError);
@@ -46,12 +46,12 @@ document.addEventListener('deviceready', async () => {
     }
 });
 
-// Helper sequence to pre-load rewarded assets into memory safely
+// Helper sequence to pre-load rewarded assets using official community method names
 async function preloadNextRewardedAd() {
-    if (nativeAdMobPlugin) {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         try {
-            await nativeAdMobPlugin.prepareRewardedAd({
-                adId: 'ca-app-pub-1825832964235064/8252422930',
+            await window.Capacitor.Plugins.AdMob.loadRewardedAd({
+                adId: REWARDED_AD_ID,
                 isTesting: false
             });
         } catch (e) {
@@ -549,17 +549,15 @@ function hideQuitModal() {
   elements.quitModal.classList.remove("active");
 }
 
-// 2. NEW CAPACITOR NATIVE APPLICATION EXIT STRATEGY
+// FIX: EXPLICIT CAPACITOR APP PLUGIN EXIT EXECUTION
 function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  // Directly grab the native Capacitor App bundle namespace to enforce termination.
-  // This triggers a native finish() event inside the parent Android MainActivity layout.
+  // Explicitly reference the standard @capacitor/app namespace to terminate application
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
       window.Capacitor.Plugins.App.exitApp();
   } else {
-      // Direct absolute web fallback if plugin environment has a slight latency
       window.close();
   }
 }
@@ -798,7 +796,7 @@ function submitAnswer() {
   }
 }
 
-// 3. ENHANCED REWARDED DECOUPLED AD EXECUTION HANDLER
+// FIX: OFFICIAL COMMUNITY ADMOB DISPLAY METHOD IMPLEMENTATIONS
 async function showHint() {
   playClick();
   
@@ -806,23 +804,23 @@ async function showHint() {
     elements.audio.bgMusic.pause();
   }
 
-  // Check if native framework cache layout contains an asset ready to fire
-  if (nativeAdMobPlugin && isRewardedAdCached) {
+  // Enforce structured native rewarded playback using standard community properties
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
     try {
-      await nativeAdMobPlugin.showRewardedAd();
+      await window.Capacitor.Plugins.AdMob.showRewardedAd();
       console.log("Native video tracked and shown.");
     } catch (adError) {
-      console.error("Ad slot container runtime exception, bypassing safely:", adError);
+      console.error("AdMob display runtime exception:", adError);
     }
   } else {
-    console.log("No ad cached or running locally. Granting content fallback bypass.");
+    console.log("Ad asset not cached yet. Bypassing safely via production standard content logic.");
   }
 
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
-  // Unified rendering block: Guarantees user receives their hint under any network layout condition
+  // Content Unlock: Runs completely detached from network speed or cache states
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
@@ -840,15 +838,15 @@ async function showSolution() {
     elements.audio.bgMusic.pause();
   }
 
-  if (nativeAdMobPlugin && isRewardedAdCached) {
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
     try {
-      await nativeAdMobPlugin.showRewardedAd();
+      await window.Capacitor.Plugins.AdMob.showRewardedAd();
       console.log("Native solution video tracked and shown.");
     } catch (adError) {
-      console.error("Ad slot solution runtime exception, bypassing safely:", adError);
+      console.error("AdMob display runtime exception:", adError);
     }
   } else {
-    console.log("No ad cached or running locally. Unlocking solution fallback.");
+    console.log("Ad asset not cached yet. Granting solution access.");
   }
 
   if (elements.toggles.music.checked) {
