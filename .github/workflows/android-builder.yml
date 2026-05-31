@@ -25,15 +25,11 @@ jobs:
       run: |
         rm -rf package.json package-lock.json node_modules
         npm init -y
-        # Install core engine packages alongside the Babel code compiler
         npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0 @babel/core @babel/cli @babel/preset-env
 
     - name: Compile and Transpile Modern JS Syntax
       run: |
-        # This converts modern syntax operators to older browser-safe equivalent logic
         npx babel script.js --out-file compiled_script.js --presets=@babel/preset-env
-        
-        # Inject the cordova/capacitor hook safely into a cloud copy of your index.html
         sed 's/<\/head>/<script src="cordova.js"><\/script><\/head>/g' index.html > fixed_index.html
 
     - name: Construct Native App Bundle Directory
@@ -44,7 +40,6 @@ jobs:
         cp compiled_script.js dist/script.js
         cp *.mp3 dist/ 2>/dev/null || true
 
-        # Build clean configuration file
         cat <<EOF > capacitor.config.json
         {
           "appId": "com.ayush.mathsriddle",
@@ -71,14 +66,27 @@ jobs:
           sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
         fi
 
-    - name: Compile Production APK File
+    - name: Compile Unsigned Release APK File
       run: |
         cd android
         chmod +x gradlew
         ./gradlew assembleRelease
 
+    - name: Generate Key and Sign the APK for Mobile Testing
+      run: |
+        cd android/app/build/outputs/apk/release/
+        
+        # 1. Create a temporary local keystore signature
+        keytool -genkey -v -keystore test.keystore -alias test_alias -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=Ayush, OU=Development, O=MathRiddles, L=Pune, S=MH, C=IN"
+        
+        # 2. Sign the unsigned build artifact so Android devices accept it as valid
+        jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore test.keystore -storepass password app-release-unsigned.apk test_alias
+        
+        # 3. Rename it to clearly mark it as signed and test-ready
+        mv app-release-unsigned.apk math-riddles-signed.apk
+
     - name: Package Completed Application Target Artifact
       uses: actions/upload-artifact@v4
       with:
         name: math-riddles-apk
-        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: android/app/build/outputs/apk/release/math-riddles-signed.apk
