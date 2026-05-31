@@ -1,76 +1,65 @@
-// ==========================================
-// ADMOB CONFIGURATION & STATE ENGINE
-// ==========================================
+// Global tracking properties using official Capacitor community standards
 let isRewardedAdCached = false;
 const REWARDED_AD_ID = 'ca-app-pub-1825832964235064/8252422930';
 
-// Register core native environment configurations using standard deviceready listener
+// Initialize Native Framework Handlers immediately upon Device Readiness
 document.addEventListener('deviceready', async () => {
-    try {
-        // Match the layout configuration parameters of the 'capacitor-admob' plugin instance
-        if (typeof AdMob !== 'undefined') {
-            // Core engine bootstrapping
-            await AdMob.initialize({ requestTrackingAuthorization: true });
-            console.log("AdMob Framework initialized successfully.");
+    // 1. Core Native AdMob Mapping Strategy
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+        try {
+            const AdMob = window.Capacitor.Plugins.AdMob;
+            
+            // Core engine bootstrapping according to @capacitor-community/admob specs
+            await AdMob.initialize({ initializeForTesting: false });
+            console.log("Native AdMob interface established successfully.");
 
-            // Present the persistent bottom container banner anchoring your level layouts
+            // Display your production bottom banner ad anchor
             await AdMob.showBanner({
                 adId: 'ca-app-pub-1825832964235064/5196004433',
-                adSize: 'BANNER',
-                position: 'BOTTOM',
+                position: 'BOTTOM_CENTER',
                 margin: 0,
                 isTesting: false
             });
 
-            // Set up ad tracking events safely
-            document.addEventListener('onAdLoaded', (data) => {
-                if (data.adType === 'rewardvideo') {
-                    isRewardedAdCached = true;
-                    console.log("Rewarded tracking module cached an asset.");
-                }
+            // Set up native event listeners BEFORE loading ads to accurately track cached states
+            AdMob.addListener('rewardedAdLoaded', () => {
+                isRewardedAdCached = true;
+                console.log("Rewarded ad asset cached safely in memory.");
             });
 
-            document.addEventListener('onAdFailedToLoad', (data) => {
-                if (data.adType === 'rewardvideo') {
-                    isRewardedAdCached = false;
-                    console.warn("Rewarded video buffer skipped.");
-                }
+            AdMob.addListener('rewardedAdFailedToLoad', (info) => {
+                isRewardedAdCached = false;
+                console.warn("Rewarded video failed to cache:", info.message);
             });
 
-            document.addEventListener('onAdDismissed', (data) => {
-                if (data.adType === 'rewardvideo') {
-                    isRewardedAdCached = false;
-                    preloadNextRewardedAd(); // Buffer next video slot instantly for upcoming hints
-                }
+            AdMob.addListener('rewardedAdDismissed', () => {
+                isRewardedAdCached = false;
+                preloadNextRewardedAd(); // Instantly prepare the next unit for future levels
             });
 
-            // Prime the initial ad unit caching lifecycle
+            // Cache the initial rewarded video tracking sequence
             preloadNextRewardedAd();
-        } else {
-            console.warn("AdMob global namespace variable not detected in this environment loop.");
+
+        } catch (adInitError) {
+            console.error("AdMob background mapping bypassed:", adInitError);
         }
-    } catch (adError) {
-        console.error("AdMob structural fallback mapping caught:", adError);
     }
 });
 
-// Preloader lifecycle mapping function matching your plugin signature
+// Helper sequence to pre-load rewarded assets using official community method names
 async function preloadNextRewardedAd() {
-    try {
-        if (typeof AdMob !== 'undefined') {
-            await AdMob.loadRewardAd({
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+        try {
+            await window.Capacitor.Plugins.AdMob.loadRewardedAd({
                 adId: REWARDED_AD_ID,
                 isTesting: false
             });
+        } catch (e) {
+            console.log("Ad preload cycle caught cleanly:", e);
         }
-    } catch (e) {
-        console.log("Ad preload pipeline cleanly handled:", e);
     }
 }
 
-// ==========================================
-// CORE DATA PLATFORM (RIDDLES COLLECTION)
-// ==========================================
 const riddles = [
   { 
     question: "I am a 2-digit number. When reversed, I become 27 more than my original value. My digits add up to 9. What number am I?", 
@@ -355,7 +344,7 @@ const riddles = [
     solution: "0.5 / 0.25 is mathematically equivalent to 1/2 ÷ 1/4 = 2."
   },
   {
-    question: "A square has a side of 5 cm. What is its area?",
+    square: "A square has a side of 5 cm. What is its area?",
     answer: "25",
     hint: "Area of a square = side × side.",
     solution: "5 cm × 5 cm = 25 cm²."
@@ -374,7 +363,6 @@ const riddles = [
   }
 ];
 
-// State Tracking Parameters
 let currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
 let solved = JSON.parse(localStorage.getItem("solvedLevels") || "[]");
 let hintsUsed = JSON.parse(localStorage.getItem("hintsUsed") || "{}");
@@ -383,7 +371,6 @@ let isProcessingInput = false;
 let timerInterval = null;
 let levelStartTime = 0;
 
-// Object Mapping Definitions
 const elements = {
   screens: {
     home: document.getElementById("homeScreen"),
@@ -444,9 +431,6 @@ const elements = {
   solutionPopup: document.getElementById("solutionPopup")
 };
 
-// ==========================================
-// SYSTEM ENGINE BOOTSTRAPPER
-// ==========================================
 function initGame() {
   elements.audio.bgMusic.volume = 0.3;
   elements.audio.click.volume = 0.6;
@@ -490,7 +474,7 @@ function initGame() {
   initParticles();
 
   setTimeout(() => {
-    if(elements.splash) elements.splash.style.display = "none";
+    elements.splash.style.display = "none";
   }, 2000);
 }
 
@@ -511,38 +495,35 @@ function setupEventListeners() {
   elements.buttons.closeHint.addEventListener("click", hideHintPopup);
   elements.buttons.closeSolution.addEventListener("click", hideSolutionPopup);
 
-  const keypad = document.querySelector(".keypad");
-  if (keypad) {
-    keypad.addEventListener("click", (e) => {
-      if (isProcessingInput) return;
-      isProcessingInput = true;
-      const button = e.target.closest("button");
-      if (button && button.dataset.number) {
+  document.querySelector(".keypad").addEventListener("click", (e) => {
+    if (isProcessingInput) return;
+    isProcessingInput = true;
+    const button = e.target.closest("button");
+    if (button && button.dataset.number) {
+      press(button.dataset.number);
+    }
+    setTimeout(() => { isProcessingInput = false; }, 100);
+  });
+
+  document.querySelector(".keypad").addEventListener("touchstart", (e) => {
+    if (isProcessingInput) return;
+    isProcessingInput = true;
+    const button = e.target.closest("button");
+    if (button) {
+      if (button.dataset.number) {
         press(button.dataset.number);
       }
-      setTimeout(() => { isProcessingInput = false; }, 100);
-    });
+      button.classList.add("active");
+    }
+    setTimeout(() => { isProcessingInput = false; }, 100);
+  }, { passive: true });
 
-    keypad.addEventListener("touchstart", (e) => {
-      if (isProcessingInput) return;
-      isProcessingInput = true;
-      const button = e.target.closest("button");
-      if (button) {
-        if (button.dataset.number) {
-          press(button.dataset.number);
-        }
-        button.classList.add("active");
-      }
-      setTimeout(() => { isProcessingInput = false; }, 100);
-    }, { passive: true });
-
-    keypad.addEventListener("touchend", (e) => {
-      const button = e.target.closest("button");
-      if (button) {
-        button.classList.remove("active");
-      }
-    }, { passive: true });
-  }
+  document.querySelector(".keypad").addEventListener("touchend", (e) => {
+    const button = e.target.closest("button");
+    if (button) {
+      button.classList.remove("active");
+    }
+  }, { passive: true });
 
   document.querySelectorAll(".btn, .level-btn").forEach(btn => {
     btn.addEventListener("mouseenter", () => playSound(elements.audio.buttonHover));
@@ -558,9 +539,6 @@ function setupEventListeners() {
   window.addEventListener("popstate", handleBackButton);
 }
 
-// ==========================================
-// QUIT APPLICATION HANDLERS
-// ==========================================
 function showQuitModal() {
   playClick();
   elements.quitModal.classList.add("active");
@@ -571,14 +549,13 @@ function hideQuitModal() {
   elements.quitModal.classList.remove("active");
 }
 
+// FIX: EXPLICIT CAPACITOR APP PLUGIN EXIT EXECUTION
 function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  // Clean cross-platform layout termination routines
-  if (navigator && navigator.app && navigator.app.exitApp) {
-      navigator.app.exitApp();
-  } else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+  // Explicitly reference the standard @capacitor/app namespace to terminate application
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
       window.Capacitor.Plugins.App.exitApp();
   } else {
       window.close();
@@ -593,9 +570,6 @@ function handleBackButton() {
   }
 }
 
-// ==========================================
-// SETTINGS & CONFIGURATION LOGIC
-// ==========================================
 function toggleMusic() {
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(e => console.log("Music play error:", e));
@@ -624,9 +598,6 @@ function toggleTheme() {
   }
 }
 
-// ==========================================
-// AUDIO LOGIC PIPELINE
-// ==========================================
 function playSound(sound) {
   if (elements.toggles.sfx.checked && sound) {
     sound.currentTime = 0;
@@ -634,17 +605,34 @@ function playSound(sound) {
   }
 }
 
-function playClick() { playSound(elements.audio.click); }
-function playCorrectSound() { playSound(elements.audio.correct); }
-function playWrongSound() { playSound(elements.audio.wrong); }
-function playLevelCompleteSound() { playSound(elements.audio.levelComplete); }
-function playHintSound() { playSound(elements.audio.hint); }
-function playSolutionSound() { playSound(elements.audio.solution); }
-function playScreenTransitionSound() { playSound(elements.audio.screenTransition); }
+function playClick() {
+  playSound(elements.audio.click);
+}
 
-// ==========================================
-// SCREEN NAVIGATION MANAGEMENT
-// ==========================================
+function playCorrectSound() {
+  playSound(elements.audio.correct);
+}
+
+function playWrongSound() {
+  playSound(elements.audio.wrong);
+}
+
+function playLevelCompleteSound() {
+  playSound(elements.audio.levelComplete);
+}
+
+function playHintSound() {
+  playSound(elements.audio.hint);
+}
+
+function playSolutionSound() {
+  playSound(elements.audio.solution);
+}
+
+function playScreenTransitionSound() {
+  playSound(elements.audio.screenTransition);
+}
+
 function showScreen(id) {
   playScreenTransitionSound();
   history.pushState({screen: id}, "", "#"+id);
@@ -660,12 +648,8 @@ function startGame() {
   loadLevel(currentLevel);
 }
 
-// ==========================================
-// GAMEPLAY AND UI RENDERING ACTIONS
-// ==========================================
 function renderLevels() {
   const grid = elements.gameElements.levelButtons;
-  if (!grid) return;
   grid.innerHTML = "";
   riddles.forEach((_, i) => {
     const level = i + 1;
@@ -701,10 +685,8 @@ function animateLevelButtons() {
 }
 
 function updateProgressBar() {
-  if (elements.gameElements.progressBar) {
-    const progress = (solved.length / riddles.length) * 100;
-    elements.gameElements.progressBar.style.width = `${progress}%`;
-  }
+  const progress = (solved.length / riddles.length) * 100;
+  elements.gameElements.progressBar.style.width = `${progress}%`;
 }
 
 function startTimer() {
@@ -712,9 +694,7 @@ function startTimer() {
   levelStartTime = Date.now();
   timerInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - levelStartTime) / 1000);
-    if (elements.gameElements.levelTimer) {
-      elements.gameElements.levelTimer.textContent = `Time: ${elapsed}s`;
-    }
+    elements.gameElements.levelTimer.textContent = `Time: ${elapsed}s`;
   }, 1000);
 }
 
@@ -731,7 +711,7 @@ function loadLevel(level) {
   const r = riddles[level - 1];
   currentLevel = level;
   userAnswer = "";
-  elements.gameElements.levelTitle.textContent = `Level ${level}`;
+  elements.gameElements.levelTitle.textContent = `Level ${ level }`;
   elements.gameElements.questionText.textContent = r.question;
   elements.gameElements.answerBox.textContent = "";
   elements.gameElements.resultMsg.textContent = "";
@@ -763,7 +743,6 @@ function updateAchievements() {
     { name: "Genius", count: 50, emoji: "🧠" }
   ];
   const list = elements.gameElements.achievementsList;
-  if (!list) return;
   list.innerHTML = "";
   achievements.forEach(ach => {
     const li = document.createElement("li");
@@ -817,9 +796,7 @@ function submitAnswer() {
   }
 }
 
-// ==========================================
-// EXCLUSIVE REWARDED HINT INTERCEPTOR
-// ==========================================
+// FIX: OFFICIAL COMMUNITY ADMOB DISPLAY METHOD IMPLEMENTATIONS
 async function showHint() {
   playClick();
   
@@ -827,41 +804,55 @@ async function showHint() {
     elements.audio.bgMusic.pause();
   }
 
-  // Intercept layout configuration: play video ONLY for the Hint option
-  if (typeof AdMob !== 'undefined' && isRewardedAdCached) {
+  // Enforce structured native rewarded playback using standard community properties
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
     try {
-      console.log("Playing Rewarded Video for Hint via capacitor-admob standard signatures...");
-      await AdMob.showRewardAd();
+      await window.Capacitor.Plugins.AdMob.showRewardedAd();
+      console.log("Native video tracked and shown.");
     } catch (adError) {
-      console.error("AdMob playback runtime error:", adError);
+      console.error("AdMob display runtime exception:", adError);
     }
   } else {
-    console.log("Ad asset not cached yet. Rendering fallback cleanly.");
+    console.log("Ad asset not cached yet. Bypassing safely via production standard content logic.");
   }
 
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
-  // Show hint window layout safely
+  // Content Unlock: Runs completely detached from network speed or cache states
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
   elements.hintPopup.classList.add("active");
-  
   hintsUsed[currentLevel] = (hintsUsed[currentLevel] || 0) + 1;
   localStorage.setItem("hintsUsed", JSON.stringify(hintsUsed));
   elements.buttons.solution.disabled = false; 
   renderLevels(); 
 }
 
-// ==========================================
-// INSTANT ACCESS SOLUTION INTERCEPTOR (NO ADS)
-// ==========================================
-function showSolution() {
+async function showSolution() {
   playClick();
 
-  // Instant display without querying the AdMob plugin namespace loop
+  if (elements.toggles.music.checked) {
+    elements.audio.bgMusic.pause();
+  }
+
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
+    try {
+      await window.Capacitor.Plugins.AdMob.showRewardedAd();
+      console.log("Native solution video tracked and shown.");
+    } catch (adError) {
+      console.error("AdMob display runtime exception:", adError);
+    }
+  } else {
+    console.log("Ad asset not cached yet. Granting solution access.");
+  }
+
+  if (elements.toggles.music.checked) {
+    elements.audio.bgMusic.play().catch(console.error);
+  }
+
   playSolutionSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.solutionText.textContent = r.solution;
@@ -873,18 +864,13 @@ function hideHintPopup() {
   elements.hintPopup.classList.remove("active");
 }
 
-// FIX: Operational Closing Button Route
 function hideSolutionPopup() {
   playClick();
   elements.solutionPopup.classList.remove("active");
 }
 
-// ==========================================
-// VISUAL FX (CONFETTI & PARTICLE CANVAS LABS)
-// ==========================================
 function fireConfetti(callback) {
   const canvas = elements.confettiCanvas;
-  if (!canvas) { if(callback) callback(); return; }
   const ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -950,15 +936,12 @@ function fireConfetti(callback) {
 }
 
 function clearConfetti() {
-  if (elements.confettiCanvas) {
-    const ctx = elements.confettiCanvas.getContext("2d");
-    ctx.clearRect(0, 0, elements.confettiCanvas.width, elements.confettiCanvas.height);
-  }
+  const ctx = elements.confettiCanvas.getContext("2d");
+  ctx.clearRect(0, 0, elements.confettiCanvas.width, elements.confettiCanvas.height);
 }
 
 function initParticles() {
   const canvas = elements.particleCanvas;
-  if (!canvas) return;
   const ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
