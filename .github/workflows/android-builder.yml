@@ -66,27 +66,15 @@ jobs:
           sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
         fi
 
-    - name: Compile Unsigned Release APK File
+    - name: Compile Autographed Debug APK File
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleRelease
-
-    - name: Generate Key and Sign the APK for Mobile Testing
-      run: |
-        cd android/app/build/outputs/apk/release/
-        
-        # 1. Create a temporary local keystore signature
-        keytool -genkey -v -keystore test.keystore -alias test_alias -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=Ayush, OU=Development, O=MathRiddles, L=Pune, S=MH, C=IN"
-        
-        # 2. Sign the unsigned build artifact so Android devices accept it as valid
-        jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore test.keystore -storepass password app-release-unsigned.apk test_alias
-        
-        # 3. Rename it to clearly mark it as signed and test-ready
-        mv app-release-unsigned.apk math-riddles-signed.apk
+        # This compiles using the automatic internal Android system test keys
+        ./gradlew assembleDebug
 
     - name: Package Completed Application Target Artifact
       uses: actions/upload-artifact@v4
       with:
         name: math-riddles-apk
-        path: android/app/build/outputs/apk/release/math-riddles-signed.apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
