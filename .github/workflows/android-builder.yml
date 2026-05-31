@@ -1,4 +1,4 @@
-name: Build Android App with Test Ads
+name: Build Production Android App with Live Ads
 on:
   push:
     branches: [ main ]
@@ -54,44 +54,44 @@ jobs:
         npx cap add android
         npx cap sync android
 
-    - name: Inject Google Test Ads, Runtime Initialization, and Namespace Fix
+    - name: Inject Production AdMob Credentials and Namespace Fix
       run: |
-        # 1. Inject the standard Google Test App ID into the Manifest
+        # 1. Inject your real live AdMob App ID into the Manifest file
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST" ]; then
-          sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' "$MANIFEST"
+          sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-1825832964235064~3094905301"/>' "$MANIFEST"
         fi
         
-        # 2. Force-replace any hardcoded banner strings with the Google Test Banner ID
-        sed -i 's|adId:[[:space:]]*["'\''][^"'\'']*["'\'']|adId: "ca-app-pub-3940256099942544/6300978111"|g' dist/script.js
+        # 2. Update your Banner Unit ID dynamically inside your JavaScript asset code
+        sed -i 's|adId:[[:space:]]*["'\''][^"'\'']*["'\'']|adId: "ca-app-pub-1825832964235064/9289493815"|g' dist/script.js
         
-        # 3. Append the explicit Capacitor AdMob activation sequence to the asset package execution stack
+        # 3. Append the production initialization sequence to the asset package execution stack
         cat <<EOF >> dist/script.js
 
-        // Automated Global Framework Handler
+        // Automated Production Global Framework Handler
         document.addEventListener('deviceready', async () => {
           try {
             if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
               const AdMob = window.Capacitor.Plugins.AdMob;
-              await AdMob.initialize({ initializeForTesting: true });
+              await AdMob.initialize({ initializeForTesting: false });
               await AdMob.showBanner({
-                adId: 'ca-app-pub-3940256099942544/6300978111',
+                adId: 'YOUR_LIVE_BANNER_UNIT_ID_HERE',
                 adSize: 'BANNER',
                 position: 'BOTTOM_CENTER',
                 margin: 0,
-                isTesting: true
+                isTesting: false
               });
-              console.log("AdMob framework initialized successfully.");
+              console.log("Production AdMob framework initialized.");
             }
           } catch (e) {
-            console.error("AdMob layout failed to mount:", e);
+            console.error("AdMob production initialization exception:", e);
           }
         });
         EOF
 
         npx cap sync android
         
-        # 4. Apply the system compilation namespace fix
+        # 4. Apply the Android system compilation namespace fix
         GRADLE="android/app/build.gradle"
         if [ -f "$GRADLE" ]; then
           sed -i '/android {/a \    namespace "com.ayush.mathsriddle"' "$GRADLE"
@@ -106,5 +106,5 @@ jobs:
     - name: Package Completed Application Target Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: math-riddles-test-apk
+        name: math-riddles-live-ads-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
