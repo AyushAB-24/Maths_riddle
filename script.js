@@ -1,29 +1,40 @@
-// AdMob Configuration and Initialization
+// Global placeholder for Capacitor AdMob reference
+let capacitorAdMob = null;
+
+// Capacitor Framework Bootstrapper & AdMob Initialization
 document.addEventListener('deviceready', async () => {
-    if (typeof AdMob !== 'undefined') {
+    // Check if running inside a Capacitor/Native environment
+    if (window.Capacitor && window.Capacitor.Plugins) {
+        capacitorAdMob = window.Capacitor.Plugins.AdMob;
+    }
+
+    if (capacitorAdMob) {
         try {
             // Initialize the AdMob engine using your live App ID
-            await AdMob.initialize({ requestTrackingAuthorization: true });
+            await capacitorAdMob.initialize({
+                requestTrackingAuthorization: true,
+                testingDevices: []
+            });
+            console.log("Capacitor AdMob engine initialized.");
 
             // Show a safe test version of your live banner
-            await AdMob.showBanner({
+            await capacitorAdMob.showBanner({
                 adId: 'ca-app-pub-1825832964235064/5196004433', // Your Live Banner Ad ID
-                adSize: 'BANNER',
                 position: 'BOTTOM',
                 margin: 0,
                 isTesting: true // Keep true until AdMob dashboard says "Ready"
             });
-            console.log("AdMob Banner initialized successfully.");
+            console.log("AdMob Banner displayed successfully.");
 
             // Pre-load your live rewarded ad slot in test mode
-            await AdMob.loadRewardAd({
+            await capacitorAdMob.prepareRewardAd({
                 adId: 'ca-app-pub-1825832964235064/8252422930', // Your Live Rewarded Ad ID
                 isTesting: true // Keep true until AdMob dashboard says "Ready"
             });
             console.log("AdMob Rewarded Ad pre-loaded successfully.");
 
         } catch (error) {
-            console.error("AdMob failed to load:", error);
+            console.error("AdMob initialization failed:", error);
         }
     }
 });
@@ -400,7 +411,6 @@ const elements = {
 };
 
 function initGame() {
-  // Set audio volumes
   elements.audio.bgMusic.volume = 0.3;
   elements.audio.click.volume = 0.6;
   elements.audio.correct.volume = 0.5;
@@ -411,7 +421,6 @@ function initGame() {
   elements.audio.screenTransition.volume = 0.4;
   elements.audio.buttonHover.volume = 0.2;
 
-  // Initialize music
   if (localStorage.getItem("music") !== "off") {
     elements.toggles.music.checked = true;
     setTimeout(() => {
@@ -425,14 +434,12 @@ function initGame() {
     elements.toggles.music.checked = false;
   }
 
-  // Initialize SFX
   if (localStorage.getItem("sfx") !== "off") {
     elements.toggles.sfx.checked = true;
   } else {
     elements.toggles.sfx.checked = false;
   }
 
-  // Initialize theme
   if (localStorage.getItem("theme") === "light") {
     elements.toggles.theme.checked = true;
     document.body.classList.add("light-theme");
@@ -445,7 +452,6 @@ function initGame() {
   updateAchievements();
   initParticles();
 
-  // Hide splash screen after 2s
   setTimeout(() => {
     elements.splash.style.display = "none";
   }, 2000);
@@ -471,19 +477,16 @@ function setupEventListeners() {
   document.querySelector(".keypad").addEventListener("click", (e) => {
     if (isProcessingInput) return;
     isProcessingInput = true;
-    
     const button = e.target.closest("button");
     if (button && button.dataset.number) {
       press(button.dataset.number);
     }
-    
     setTimeout(() => { isProcessingInput = false; }, 100);
   });
 
   document.querySelector(".keypad").addEventListener("touchstart", (e) => {
     if (isProcessingInput) return;
     isProcessingInput = true;
-    
     const button = e.target.closest("button");
     if (button) {
       if (button.dataset.number) {
@@ -491,7 +494,6 @@ function setupEventListeners() {
       }
       button.classList.add("active");
     }
-    
     setTimeout(() => { isProcessingInput = false; }, 100);
   }, { passive: true });
 
@@ -529,11 +531,14 @@ function hideQuitModal() {
 function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
-  try {
-    window.close();
-  } catch (e) {
-    console.log("Window close failed, redirecting to home screen:", e);
-    showScreen("homeScreen");
+  
+  // Use Native platform background process manager to exit safely
+  if (window.navigator && window.navigator.app && window.navigator.app.exitApp) {
+      window.navigator.app.exitApp();
+  } else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.exitApp();
+  } else {
+      showScreen("homeScreen");
   }
 }
 
@@ -608,7 +613,6 @@ function playScreenTransitionSound() {
   playSound(elements.audio.screenTransition);
 }
 
-// Fixed function reference to resolve linting
 function showScreen(id) {
   playScreenTransitionSound();
   history.pushState({screen: id}, "", "#"+id);
@@ -772,37 +776,32 @@ function submitAnswer() {
   }
 }
 
-// Show Hint wrapped with a Rewarded Video Ad
+// Show Hint wrapped with a Capacitor Rewarded Video Ad
 async function showHint() {
   playClick();
   
-  // Pause background music while the ad plays
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.pause();
   }
 
-  if (typeof AdMob !== 'undefined') {
+  if (capacitorAdMob) {
     try {
-      // Show Rewarded ad and await confirmation that user watched it fully
-      await AdMob.showRewardAd();
-      console.log("User successfully earned reward.");
+      await capacitorAdMob.showRewardAd();
+      console.log("User successfully earned hint reward.");
     } catch (error) {
-      console.error("Ad failed or was skipped, proceeding to hint anyway:", error);
+      console.error("Ad failed, proceeding anyway:", error);
     } finally {
-      // Re-load another rewarded ad in the background using your live rewarded ID
-      AdMob.loadRewardAd({
+      await capacitorAdMob.prepareRewardAd({
         adId: 'ca-app-pub-1825832964235064/8252422930',
         isTesting: true
       }).catch(console.error);
     }
   }
 
-  // Resume background music if it was active
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
-  // Award the reward: open the hint popup
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
@@ -818,37 +817,32 @@ function hideHintPopup() {
   elements.hintPopup.classList.remove("active");
 }
 
-// Show Solution wrapped with a Rewarded Video Ad
+// Show Solution wrapped with a Capacitor Rewarded Video Ad
 async function showSolution() {
   playClick();
 
-  // Pause background music while the ad plays
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.pause();
   }
 
-  if (typeof AdMob !== 'undefined') {
+  if (capacitorAdMob) {
     try {
-      // Show Rewarded ad and await confirmation that user watched it fully
-      await AdMob.showRewardAd();
-      console.log("User successfully earned reward.");
+      await capacitorAdMob.showRewardAd();
+      console.log("User successfully earned solution reward.");
     } catch (error) {
-      console.error("Ad failed or was skipped, proceeding to solution anyway:", error);
+      console.error("Ad failed, proceeding anyway:", error);
     } finally {
-      // Re-load another rewarded ad in the background using your live rewarded ID
-      AdMob.loadRewardAd({
+      await capacitorAdMob.prepareRewardAd({
         adId: 'ca-app-pub-1825832964235064/8252422930',
         isTesting: true
       }).catch(console.error);
     }
   }
 
-  // Resume background music if it was active
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
-  // Award the reward: open the solution popup
   playSolutionSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.solutionText.textContent = r.solution;
@@ -886,12 +880,10 @@ function fireConfetti(callback) {
   let frame = 0;
   const anim = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
     particles.forEach(p => {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rotation * Math.PI / 180);
-      
       ctx.fillStyle = p.color;
       ctx.beginPath();
       if (useStars) {
@@ -908,18 +900,15 @@ function fireConfetti(callback) {
         ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
       }
       ctx.fill();
-      
       ctx.restore();
       
       p.y += p.speed;
       p.rotation += p.rotationSpeed;
-      
       if (p.y > canvas.height + p.size) {
         p.y = -p.size;
         p.x = Math.random() * canvas.width;
       }
     });
-    
     frame++;
     if (frame < 120) {
       requestAnimationFrame(anim);
@@ -928,7 +917,6 @@ function fireConfetti(callback) {
       if (callback) callback();
     }
   };
-  
   anim();
 }
 
@@ -962,16 +950,13 @@ function initParticles() {
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(179, 136, 255, ${p.opacity})`;
       ctx.fill();
-      
       p.x += p.speedX;
       p.y += p.speedY;
-      
       if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
       if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
     });
     requestAnimationFrame(animateParticles);
   }
-  
   animateParticles();
 }
 
