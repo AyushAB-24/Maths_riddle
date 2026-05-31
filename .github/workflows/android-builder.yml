@@ -21,29 +21,48 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Initialize Project & Install Capacitor + AdMob
+    - name: Clean Install NPM Packages
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli
-        npx cap init "Maths Riddle" "com.ayush.mathsriddle" --web-dir=.
-        npm install capacitor-admob
-        npx cap add android
 
-    - name: Inject AdMob App ID into Android Manifest
+    - name: Create Base Capacitor Configuration File
       run: |
-        sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' android/app/src/main/AndroidManifest.xml
+        cat <<EOF > capacitor.config.json
+        {
+          "appId": "com.ayush.mathsriddle",
+          "appName": "Math Riddles",
+          "webDir": "."
+        }
+        EOF
 
-    - name: Sync Files to Android Container
+    - name: Install AdMob Plugin
+      run: npm install capacitor-admob
+
+    - name: Construct Android Native Architecture
+      run: npx cap add android
+
+    - name: Inject AdMob App ID into Android Manifest Config
+      run: |
+        FILE="android/app/src/main/AndroidManifest.xml"
+        if [ -f "$FILE" ]; then
+          # Places the required App ID inside the native application scope block
+          sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>' "$FILE"
+        else
+          echo "Error: AndroidManifest.xml missing!" && exit 1
+        fi
+
+    - name: Synchronize Game Assets to App Package
       run: npx cap sync android
 
-    - name: Build Unsigned Production APK
+    - name: Compile Unsigned Release APK File
       run: |
         cd android
         chmod +x gradlew
         ./gradlew assembleRelease
 
-    - name: Upload Finished APK
+    - name: Package Completed Application Target Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: maths-riddle-apk
+        name: math-riddles-apk
         path: android/app/build/outputs/apk/release/app-release-unsigned.apk
