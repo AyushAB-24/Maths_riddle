@@ -1,19 +1,20 @@
-// Global tracking properties using official Capacitor community standards
+// ==========================================
+// ADMOB CONFIGURATION & STATE ENGINE
+// ==========================================
 let isRewardedAdCached = false;
 const REWARDED_AD_ID = 'ca-app-pub-1825832964235064/8252422930';
 
-// Initialize Native Framework Handlers immediately upon Device Readiness
+// Register core native environment configurations immediately on load
 document.addEventListener('deviceready', async () => {
-    // 1. Core Native AdMob Mapping Strategy
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         try {
             const AdMob = window.Capacitor.Plugins.AdMob;
             
-            // Core engine bootstrapping according to @capacitor-community/admob specs
+            // Core engine bootstrapping
             await AdMob.initialize({ initializeForTesting: false });
-            console.log("Native AdMob interface established successfully.");
+            console.log("Capacitor AdMob interface initialized successfully.");
 
-            // Display your production bottom banner ad anchor
+            // Present the persistent bottom container banner anchoring your level layouts
             await AdMob.showBanner({
                 adId: 'ca-app-pub-1825832964235064/5196004433',
                 position: 'BOTTOM_CENTER',
@@ -21,32 +22,32 @@ document.addEventListener('deviceready', async () => {
                 isTesting: false
             });
 
-            // Set up native event listeners BEFORE loading ads to accurately track cached states
+            // Production Standard Listener Callbacks to control Hint availability states
             AdMob.addListener('rewardedAdLoaded', () => {
                 isRewardedAdCached = true;
-                console.log("Rewarded ad asset cached safely in memory.");
+                console.log("Rewarded tracking module cached an asset.");
             });
 
             AdMob.addListener('rewardedAdFailedToLoad', (info) => {
                 isRewardedAdCached = false;
-                console.warn("Rewarded video failed to cache:", info.message);
+                console.warn("Rewarded video buffer skipped:", info.message);
             });
 
             AdMob.addListener('rewardedAdDismissed', () => {
                 isRewardedAdCached = false;
-                preloadNextRewardedAd(); // Instantly prepare the next unit for future levels
+                preloadNextRewardedAd(); // Buffer next video slot instantly for upcoming hints
             });
 
-            // Cache the initial rewarded video tracking sequence
+            // Prime the initial ad unit caching lifecycle
             preloadNextRewardedAd();
 
-        } catch (adInitError) {
-            console.error("AdMob background mapping bypassed:", adInitError);
+        } catch (adError) {
+            console.error("AdMob structural fallback mapping initialized:", adError);
         }
     }
 });
 
-// Helper sequence to pre-load rewarded assets using official community method names
+// Preloader lifecycle mapping function
 async function preloadNextRewardedAd() {
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         try {
@@ -55,11 +56,14 @@ async function preloadNextRewardedAd() {
                 isTesting: false
             });
         } catch (e) {
-            console.log("Ad preload cycle caught cleanly:", e);
+            console.log("Ad preload pipeline cleanly handled:", e);
         }
     }
 }
 
+// ==========================================
+// CORE DATA PLATFORM (RIDDLES COLLECTION)
+// ==========================================
 const riddles = [
   { 
     question: "I am a 2-digit number. When reversed, I become 27 more than my original value. My digits add up to 9. What number am I?", 
@@ -344,7 +348,7 @@ const riddles = [
     solution: "0.5 / 0.25 is mathematically equivalent to 1/2 ÷ 1/4 = 2."
   },
   {
-    square: "A square has a side of 5 cm. What is its area?",
+    question: "A square has a side of 5 cm. What is its area?",
     answer: "25",
     hint: "Area of a square = side × side.",
     solution: "5 cm × 5 cm = 25 cm²."
@@ -363,6 +367,7 @@ const riddles = [
   }
 ];
 
+// State Tracking Parameters
 let currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
 let solved = JSON.parse(localStorage.getItem("solvedLevels") || "[]");
 let hintsUsed = JSON.parse(localStorage.getItem("hintsUsed") || "{}");
@@ -371,6 +376,7 @@ let isProcessingInput = false;
 let timerInterval = null;
 let levelStartTime = 0;
 
+// Object Mapping Definitions
 const elements = {
   screens: {
     home: document.getElementById("homeScreen"),
@@ -431,6 +437,9 @@ const elements = {
   solutionPopup: document.getElementById("solutionPopup")
 };
 
+// ==========================================
+// SYSTEM ENGINE BOOTSTRAPPER
+// ==========================================
 function initGame() {
   elements.audio.bgMusic.volume = 0.3;
   elements.audio.click.volume = 0.6;
@@ -539,6 +548,9 @@ function setupEventListeners() {
   window.addEventListener("popstate", handleBackButton);
 }
 
+// ==========================================
+// QUIT APPLICTION HANDLERS
+// ==========================================
 function showQuitModal() {
   playClick();
   elements.quitModal.classList.add("active");
@@ -549,12 +561,11 @@ function hideQuitModal() {
   elements.quitModal.classList.remove("active");
 }
 
-// FIX: EXPLICIT CAPACITOR APP PLUGIN EXIT EXECUTION
+// FIX: EXPLICIT CAPACITOR APPLICATION TERMINATION METHOD CALL
 function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
-  // Explicitly reference the standard @capacitor/app namespace to terminate application
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
       window.Capacitor.Plugins.App.exitApp();
   } else {
@@ -570,6 +581,9 @@ function handleBackButton() {
   }
 }
 
+// ==========================================
+// SETTINGS & CONFIGURATION LOGIC
+// ==========================================
 function toggleMusic() {
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(e => console.log("Music play error:", e));
@@ -598,6 +612,9 @@ function toggleTheme() {
   }
 }
 
+// ==========================================
+// AUDIO LOGIC PIPELINE
+// ==========================================
 function playSound(sound) {
   if (elements.toggles.sfx.checked && sound) {
     sound.currentTime = 0;
@@ -605,34 +622,17 @@ function playSound(sound) {
   }
 }
 
-function playClick() {
-  playSound(elements.audio.click);
-}
+function playClick() { playSound(elements.audio.click); }
+function playCorrectSound() { playSound(elements.audio.correct); }
+function playWrongSound() { playSound(elements.audio.wrong); }
+function playLevelCompleteSound() { playSound(elements.audio.levelComplete); }
+function playHintSound() { playSound(elements.audio.hint); }
+function playSolutionSound() { playSound(elements.audio.solution); }
+function playScreenTransitionSound() { playSound(elements.audio.screenTransition); }
 
-function playCorrectSound() {
-  playSound(elements.audio.correct);
-}
-
-function playWrongSound() {
-  playSound(elements.audio.wrong);
-}
-
-function playLevelCompleteSound() {
-  playSound(elements.audio.levelComplete);
-}
-
-function playHintSound() {
-  playSound(elements.audio.hint);
-}
-
-function playSolutionSound() {
-  playSound(elements.audio.solution);
-}
-
-function playScreenTransitionSound() {
-  playSound(elements.audio.screenTransition);
-}
-
+// ==========================================
+// SCREEN NAVIGATION MANAGEMENT
+// ==========================================
 function showScreen(id) {
   playScreenTransitionSound();
   history.pushState({screen: id}, "", "#"+id);
@@ -648,6 +648,9 @@ function startGame() {
   loadLevel(currentLevel);
 }
 
+// ==========================================
+// GAMEPLAY AND UI RENDERING ACTIONS
+// ==========================================
 function renderLevels() {
   const grid = elements.gameElements.levelButtons;
   grid.innerHTML = "";
@@ -711,7 +714,7 @@ function loadLevel(level) {
   const r = riddles[level - 1];
   currentLevel = level;
   userAnswer = "";
-  elements.gameElements.levelTitle.textContent = `Level ${ level }`;
+  elements.gameElements.levelTitle.textContent = `Level ${level}`;
   elements.gameElements.questionText.textContent = r.question;
   elements.gameElements.answerBox.textContent = "";
   elements.gameElements.resultMsg.textContent = "";
@@ -796,63 +799,52 @@ function submitAnswer() {
   }
 }
 
-// FIX: OFFICIAL COMMUNITY ADMOB DISPLAY METHOD IMPLEMENTATIONS
+// ==========================================
+// EXCLUSIVE REWARDED HINT INTERCEPTOR
+// ==========================================
 async function showHint() {
   playClick();
   
+  // Pause audio files neatly before full screen overlay display handles focus
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.pause();
   }
 
-  // Enforce structured native rewarded playback using standard community properties
+  // Intercept layout validation: Force ad play tracking ONLY for the Hint option
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
     try {
+      console.log("Playing Rewarded Video for Hint...");
       await window.Capacitor.Plugins.AdMob.showRewardedAd();
-      console.log("Native video tracked and shown.");
     } catch (adError) {
-      console.error("AdMob display runtime exception:", adError);
+      console.error("AdMob layout rendering exception caught:", adError);
     }
   } else {
-    console.log("Ad asset not cached yet. Bypassing safely via production standard content logic.");
+    console.log("Ad asset not cached. Bypassing safely via production standard content logic.");
   }
 
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
-  // Content Unlock: Runs completely detached from network speed or cache states
+  // Content display unlock pipeline triggers smoothly regardless of offline connection status
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
   elements.hintPopup.classList.add("active");
+  
   hintsUsed[currentLevel] = (hintsUsed[currentLevel] || 0) + 1;
   localStorage.setItem("hintsUsed", JSON.stringify(hintsUsed));
   elements.buttons.solution.disabled = false; 
   renderLevels(); 
 }
 
-async function showSolution() {
+// ==========================================
+// INSTANT ACCESS SOLUTION INTERCEPTOR (NO ADS)
+// ==========================================
+function showSolution() {
   playClick();
 
-  if (elements.toggles.music.checked) {
-    elements.audio.bgMusic.pause();
-  }
-
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
-    try {
-      await window.Capacitor.Plugins.AdMob.showRewardedAd();
-      console.log("Native solution video tracked and shown.");
-    } catch (adError) {
-      console.error("AdMob display runtime exception:", adError);
-    }
-  } else {
-    console.log("Ad asset not cached yet. Granting solution access.");
-  }
-
-  if (elements.toggles.music.checked) {
-    elements.audio.bgMusic.play().catch(console.error);
-  }
-
+  // Instant display without querying the Capacitor-Community AdMob instance
   playSolutionSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.solutionText.textContent = r.solution;
@@ -869,6 +861,9 @@ function hideSolutionPopup() {
   elements.solutionPopup.classList.remove("active");
 }
 
+// ==========================================
+// VISUAL FX (CONFETTI & PARTICLE CANVAS LABS)
+// ==========================================
 function fireConfetti(callback) {
   const canvas = elements.confettiCanvas;
   const ctx = canvas.getContext("2d");
