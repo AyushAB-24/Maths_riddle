@@ -4,10 +4,10 @@
 let isRewardedAdCached = false;
 const REWARDED_AD_ID = 'ca-app-pub-1825832964235064/8252422930';
 
-// Register core native environment configurations immediately on load
+// Register core native environment configurations safely on load
 document.addEventListener('deviceready', async () => {
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
-        try {
+    try {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
             const AdMob = window.Capacitor.Plugins.AdMob;
             
             // Core engine bootstrapping
@@ -40,24 +40,25 @@ document.addEventListener('deviceready', async () => {
 
             // Prime the initial ad unit caching lifecycle
             preloadNextRewardedAd();
-
-        } catch (adError) {
-            console.error("AdMob structural fallback mapping initialized:", adError);
+        } else {
+            console.warn("AdMob plugin namespace not detected in this environment loop.");
         }
+    } catch (adError) {
+        console.error("AdMob structural fallback mapping caught:", adError);
     }
 });
 
 // Preloader lifecycle mapping function
 async function preloadNextRewardedAd() {
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
-        try {
+    try {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
             await window.Capacitor.Plugins.AdMob.loadRewardedAd({
                 adId: REWARDED_AD_ID,
                 isTesting: false
             });
-        } catch (e) {
-            console.log("Ad preload pipeline cleanly handled:", e);
         }
+    } catch (e) {
+        console.log("Ad preload pipeline cleanly handled:", e);
     }
 }
 
@@ -483,7 +484,7 @@ function initGame() {
   initParticles();
 
   setTimeout(() => {
-    elements.splash.style.display = "none";
+    if(elements.splash) elements.splash.style.display = "none";
   }, 2000);
 }
 
@@ -504,35 +505,38 @@ function setupEventListeners() {
   elements.buttons.closeHint.addEventListener("click", hideHintPopup);
   elements.buttons.closeSolution.addEventListener("click", hideSolutionPopup);
 
-  document.querySelector(".keypad").addEventListener("click", (e) => {
-    if (isProcessingInput) return;
-    isProcessingInput = true;
-    const button = e.target.closest("button");
-    if (button && button.dataset.number) {
-      press(button.dataset.number);
-    }
-    setTimeout(() => { isProcessingInput = false; }, 100);
-  });
-
-  document.querySelector(".keypad").addEventListener("touchstart", (e) => {
-    if (isProcessingInput) return;
-    isProcessingInput = true;
-    const button = e.target.closest("button");
-    if (button) {
-      if (button.dataset.number) {
+  const keypad = document.querySelector(".keypad");
+  if (keypad) {
+    keypad.addEventListener("click", (e) => {
+      if (isProcessingInput) return;
+      isProcessingInput = true;
+      const button = e.target.closest("button");
+      if (button && button.dataset.number) {
         press(button.dataset.number);
       }
-      button.classList.add("active");
-    }
-    setTimeout(() => { isProcessingInput = false; }, 100);
-  }, { passive: true });
+      setTimeout(() => { isProcessingInput = false; }, 100);
+    });
 
-  document.querySelector(".keypad").addEventListener("touchend", (e) => {
-    const button = e.target.closest("button");
-    if (button) {
-      button.classList.remove("active");
-    }
-  }, { passive: true });
+    keypad.addEventListener("touchstart", (e) => {
+      if (isProcessingInput) return;
+      isProcessingInput = true;
+      const button = e.target.closest("button");
+      if (button) {
+        if (button.dataset.number) {
+          press(button.dataset.number);
+        }
+        button.classList.add("active");
+      }
+      setTimeout(() => { isProcessingInput = false; }, 100);
+    }, { passive: true });
+
+    keypad.addEventListener("touchend", (e) => {
+      const button = e.target.closest("button");
+      if (button) {
+        button.classList.remove("active");
+      }
+    }, { passive: true });
+  }
 
   document.querySelectorAll(".btn, .level-btn").forEach(btn => {
     btn.addEventListener("mouseenter", () => playSound(elements.audio.buttonHover));
@@ -549,7 +553,7 @@ function setupEventListeners() {
 }
 
 // ==========================================
-// QUIT APPLICTION HANDLERS
+// QUIT APPLICATION HANDLERS
 // ==========================================
 function showQuitModal() {
   playClick();
@@ -561,13 +565,14 @@ function hideQuitModal() {
   elements.quitModal.classList.remove("active");
 }
 
-// FIX: EXPLICIT CAPACITOR APPLICATION TERMINATION METHOD CALL
 function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
   
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
       window.Capacitor.Plugins.App.exitApp();
+  } else if (navigator && navigator.app && navigator.app.exitApp) {
+      navigator.app.exitApp();
   } else {
       window.close();
   }
@@ -602,6 +607,9 @@ function toggleSFX() {
   }
 }
 
+// ==========================================
+// THEME SWITCH LOGIC
+// ==========================================
 function toggleTheme() {
   if (elements.toggles.theme.checked) {
     document.body.classList.add("light-theme");
@@ -653,6 +661,7 @@ function startGame() {
 // ==========================================
 function renderLevels() {
   const grid = elements.gameElements.levelButtons;
+  if (!grid) return;
   grid.innerHTML = "";
   riddles.forEach((_, i) => {
     const level = i + 1;
@@ -688,8 +697,10 @@ function animateLevelButtons() {
 }
 
 function updateProgressBar() {
-  const progress = (solved.length / riddles.length) * 100;
-  elements.gameElements.progressBar.style.width = `${progress}%`;
+  if (elements.gameElements.progressBar) {
+    const progress = (solved.length / riddles.length) * 100;
+    elements.gameElements.progressBar.style.width = `${progress}%`;
+  }
 }
 
 function startTimer() {
@@ -697,7 +708,9 @@ function startTimer() {
   levelStartTime = Date.now();
   timerInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - levelStartTime) / 1000);
-    elements.gameElements.levelTimer.textContent = `Time: ${elapsed}s`;
+    if (elements.gameElements.levelTimer) {
+      elements.gameElements.levelTimer.textContent = `Time: ${elapsed}s`;
+    }
   }, 1000);
 }
 
@@ -732,6 +745,9 @@ function press(n) {
   elements.gameElements.resultMsg.textContent = "";
 }
 
+// ==========================================
+// CORE GAME MECHANICS HANDLERS
+// ==========================================
 function clearAnswer() {
   playClick();
   userAnswer = "";
@@ -746,6 +762,7 @@ function updateAchievements() {
     { name: "Genius", count: 50, emoji: "🧠" }
   ];
   const list = elements.gameElements.achievementsList;
+  if (!list) return;
   list.innerHTML = "";
   achievements.forEach(ach => {
     const li = document.createElement("li");
@@ -805,7 +822,6 @@ function submitAnswer() {
 async function showHint() {
   playClick();
   
-  // Pause audio files neatly before full screen overlay display handles focus
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.pause();
   }
@@ -816,17 +832,17 @@ async function showHint() {
       console.log("Playing Rewarded Video for Hint...");
       await window.Capacitor.Plugins.AdMob.showRewardedAd();
     } catch (adError) {
-      console.error("AdMob layout rendering exception caught:", adError);
+      console.error("AdMob playback runtime error:", adError);
     }
   } else {
-    console.log("Ad asset not cached. Bypassing safely via production standard content logic.");
+    console.log("Ad asset not cached yet. Rendering fallback gracefully.");
   }
 
   if (elements.toggles.music.checked) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
-  // Content display unlock pipeline triggers smoothly regardless of offline connection status
+  // Fallback triggers smoothly to reveal content
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
@@ -844,7 +860,7 @@ async function showHint() {
 function showSolution() {
   playClick();
 
-  // Instant display without querying the Capacitor-Community AdMob instance
+  // Instant display without querying the AdMob library
   playSolutionSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.solutionText.textContent = r.solution;
@@ -866,6 +882,7 @@ function hideSolutionPopup() {
 // ==========================================
 function fireConfetti(callback) {
   const canvas = elements.confettiCanvas;
+  if (!canvas) { if(callback) callback(); return; }
   const ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -931,12 +948,15 @@ function fireConfetti(callback) {
 }
 
 function clearConfetti() {
-  const ctx = elements.confettiCanvas.getContext("2d");
-  ctx.clearRect(0, 0, elements.confettiCanvas.width, elements.confettiCanvas.height);
+  if (elements.confettiCanvas) {
+    const ctx = elements.confettiCanvas.getContext("2d");
+    ctx.clearRect(0, 0, elements.confettiCanvas.width, elements.confettiCanvas.height);
+  }
 }
 
 function initParticles() {
   const canvas = elements.particleCanvas;
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
