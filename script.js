@@ -7,7 +7,7 @@ document.addEventListener('deviceready', async () => {
 
             // Show a test banner ad safely anchored at the bottom
             await AdMob.showBanner({
-                adId: 'ca-app-pub-1825832964235064/9289493815', // Google's official Test ID
+                adId: 'ca-app-pub-1825832964235064/5196004433', // Google's official Test ID
                 adSize: 'BANNER',
                 position: 'BOTTOM',
                 margin: 0,
