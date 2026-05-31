@@ -4,44 +4,39 @@ const REWARDED_AD_ID = 'ca-app-pub-1825832964235064/8252422930';
 const BANNER_AD_ID = 'ca-app-pub-1825832964235064/5196004433';
 
 let AdMob = null;
-let bannerIsShowing = false;
+let bannerInitialized = false;
 let bannerRetryTimer = null;
 let bannerRetryDelay = 5000;
 
-// Safely destroy existing banner then show a fresh one
-async function showBannerAd() {
+// Resilient Banner Automation Loop - Kept structural, solid, and non-destructive
+async function showPermanentBanner() {
     if (!AdMob) return;
+    if (bannerInitialized) return; // Locks execution into one clean permanent instance
 
-    // Cancel any pending retry
     if (bannerRetryTimer) { clearTimeout(bannerRetryTimer); bannerRetryTimer = null; }
-
-    // Silently destroy any existing banner instance first
-    // (showBanner on an already-showing banner is a no-op in some plugin versions)
-    try { await AdMob.hideBanner(); } catch (_) {}
-    bannerIsShowing = false;
-
-    // Small delay after hide to let the native layer clean up
-    await new Promise(res => setTimeout(res, 300));
 
     try {
         await AdMob.showBanner({
             adId: BANNER_AD_ID,
             position: 'BOTTOM_CENTER',
             margin: 0,
-            adSize: 'SMART_BANNER'
+            adSize: 'BANNER',
+            isTesting: false
         });
-        // bannerIsShowing set to true inside bannerAdLoaded listener
+        bannerInitialized = true;
+        bannerRetryDelay = 5000; // Reset exponential backoff state on clear connection
+        console.log("Permanent bottom anchor banner attached.");
     } catch (e) {
-        console.warn("showBanner failed:", e);
-        scheduleRetry();
+        console.warn("Permanent banner loading delayed:", e);
+        scheduleBannerRetry();
     }
 }
 
-function scheduleRetry() {
+function scheduleBannerRetry() {
     if (bannerRetryTimer) clearTimeout(bannerRetryTimer);
     bannerRetryTimer = setTimeout(() => {
         bannerRetryDelay = Math.min(bannerRetryDelay * 2, 60000);
-        showBannerAd();
+        showPermanentBanner();
     }, bannerRetryDelay);
 }
 
@@ -51,30 +46,23 @@ document.addEventListener('deviceready', async () => {
         try {
             AdMob = window.Capacitor.Plugins.AdMob;
 
-            // Register all banner listeners BEFORE initializing/showing
+            // Register lifecycle tracking protocols BEFORE bootstrap
             AdMob.addListener('bannerAdLoaded', () => {
-                bannerIsShowing = true;
-                bannerRetryDelay = 5000; // reset backoff on success
-                console.log("Banner loaded.");
+                bannerInitialized = true;
+                bannerRetryDelay = 5000;
+                console.log("Banner layer loaded.");
             });
 
             AdMob.addListener('bannerAdFailedToLoad', (info) => {
-                bannerIsShowing = false;
-                console.warn("Banner failed:", info?.message);
-                scheduleRetry();
+                bannerInitialized = false;
+                console.warn("Banner lifecycle load error:", info?.message);
+                scheduleBannerRetry();
             });
 
-            AdMob.addListener('bannerAdOpened', () => { bannerIsShowing = true; });
-
-            AdMob.addListener('bannerAdClosed', () => {
-                bannerIsShowing = false;
-                bannerRetryTimer = setTimeout(showBannerAd, 500);
-            });
-
-            // Rewarded ad listeners
+            // Rewarded ad asset listeners
             AdMob.addListener('rewardedAdLoaded', () => {
                 isRewardedAdCached = true;
-                console.log("Rewarded ad cached.");
+                console.log("Rewarded ad asset cached safely.");
             });
 
             AdMob.addListener('rewardedAdFailedToLoad', () => {
@@ -86,29 +74,30 @@ document.addEventListener('deviceready', async () => {
                 preloadNextRewardedAd();
             });
 
-            await AdMob.initialize();
-            console.log("AdMob initialized.");
+            await AdMob.initialize({ requestTrackingAuthorization: true });
+            console.log("AdMob native bridge ready.");
 
-            // Show banner and preload rewarded
-            showBannerAd();
+            // Launch permanently locked banner assets and stack standard preloads
+            showPermanentBanner();
             preloadNextRewardedAd();
 
         } catch (adInitError) {
-            console.error("AdMob init failed:", adInitError);
+            console.error("AdMob initialization halted:", adInitError);
         }
     }
 });
 
-// Re-show banner when app comes back from background
+// Sync permanent layout constraints across operating system environment interruptions
 document.addEventListener('resume', () => {
-    bannerRetryDelay = 5000;
-    showBannerAd();
+    if (!bannerInitialized) {
+        bannerRetryDelay = 5000;
+        showPermanentBanner();
+    }
 });
 
-// Re-show banner on WebView visibility restore (multi-window / task switcher edge cases)
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !bannerIsShowing) {
-        showBannerAd();
+    if (document.visibilityState === 'visible' && !bannerInitialized) {
+        showPermanentBanner();
     }
 });
 
@@ -211,10 +200,10 @@ const riddles = [
     solution: "3 hens lay 3 eggs in 3 days means 1 hen lays 1 egg every 3 days. Therefore, 6 hens will lay 6 eggs in 3 days, and double that amount (12 eggs) in 6 days."
   },
   {
-    question: "What is 1/2 of 1/4 of 8?",
-    answer: "1",
-    hint: "Calculate 1/4 of 8 first, then cut that result in half.",
-    solution: "1/4 of 8 is 2. Then, 1/2 of 2 is 1."
+    question: "What is the area of a rectangle with length 7 cm and width 4 cm?",
+    answer: "28",
+    hint: "Area = length × width.",
+    solution: "7 cm × 4 cm = 28 cm²."
   },
   {
     question: "6-2=16, 5-3=25, 9-2=?",
@@ -497,6 +486,7 @@ const elements = {
 };
 
 function initGame() {
+  // Balanced volume configurations to prevent hardware distortion on Android channels
   elements.audio.bgMusic.volume = 0.3;
   elements.audio.click.volume = 0.6;
   elements.audio.correct.volume = 0.5;
@@ -510,7 +500,8 @@ function initGame() {
   const musicPref = localStorage.getItem("music");
   if (musicPref !== "off") {
     elements.toggles.music.checked = true;
-    // Browsers block autoplay before user interaction — start on first tap/click
+    
+    // Fallback loops bypassing WebView autoplay sandbox criteria
     const startMusicOnInteraction = () => {
       elements.audio.bgMusic.play().catch(console.error);
     };
@@ -546,7 +537,7 @@ function initGame() {
 }
 
 function setupEventListeners() {
-  // Wraps a handler so it can't fire again within 400ms — prevents double-tap on Android
+  // Continuous execution blocker pattern ensuring safety from multi-touch injection
   function once(fn, delay = 400) {
     let blocked = false;
     return function (...args) {
@@ -584,7 +575,7 @@ function setupEventListeners() {
   });
 
   document.querySelector(".keypad").addEventListener("touchstart", (e) => {
-    e.preventDefault(); // Prevents the 300ms delayed synthetic 'click' event on mobile
+    e.preventDefault(); 
     if (isProcessingInput) return;
     isProcessingInput = true;
     const button = e.target.closest("button");
@@ -628,7 +619,7 @@ function hideQuitModal() {
   elements.quitModal.classList.remove("active");
 }
 
-// FIX: EXPLICIT CAPACITOR APP PLUGIN EXIT EXECUTION
+// FIX: EXPLICIT CAPACITOR PLUGINS TARGETED AND STABLE CONTAINER DESTRUCTION METHOD
 function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
@@ -636,11 +627,8 @@ function confirmQuit() {
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
     window.Capacitor.Plugins.App.exitApp();
   } else {
-    // In a browser, window.close() only works if the tab was opened by a script.
-    // Attempt it, and fall back to a friendly home-screen redirect.
     const closed = window.close();
     if (closed === undefined) {
-      // window.close() was blocked — navigate to home screen as fallback
       showScreen("homeScreen");
     }
   }
@@ -880,15 +868,16 @@ function submitAnswer() {
   }
 }
 
-// FIX: OFFICIAL COMMUNITY ADMOB DISPLAY METHOD IMPLEMENTATIONS
+// FIX: OFFICIAL COMMUNITY ADMOB DISPLAY METHOD IMPLEMENTATIONS WITH COMPREHENSIVE AUDIO SAFEGUARDS
 async function showHint() {
   playClick();
   
-  if (elements.toggles.music.checked) {
+  const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
+  if (musicWasPlaying) {
     elements.audio.bgMusic.pause();
   }
 
-  // Enforce structured native rewarded playback using standard community properties
+  // Structured native rewarded playback using standard community properties
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
     try {
       await window.Capacitor.Plugins.AdMob.showRewardedAd();
@@ -900,11 +889,11 @@ async function showHint() {
     console.log("Ad asset not cached yet. Bypassing safely via production standard content logic.");
   }
 
-  if (elements.toggles.music.checked) {
+  if (musicWasPlaying) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
-  // Content Unlock: Runs completely detached from network speed or cache states
+  // Unlock logic sequence run detached from network latency status
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
@@ -918,7 +907,8 @@ async function showHint() {
 async function showSolution() {
   playClick();
 
-  if (elements.toggles.music.checked) {
+  const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
+  if (musicWasPlaying) {
     elements.audio.bgMusic.pause();
   }
 
@@ -933,7 +923,7 @@ async function showSolution() {
     console.log("Ad asset not cached yet. Granting solution access.");
   }
 
-  if (elements.toggles.music.checked) {
+  if (musicWasPlaying) {
     elements.audio.bgMusic.play().catch(console.error);
   }
 
