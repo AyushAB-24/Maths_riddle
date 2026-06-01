@@ -67,16 +67,16 @@ body {
 .container {
   max-width: 480px;
   width: 100%;
-  /* Subtract exactly 65px to safely clear the 50px standard ad frame + padding */
-  height: calc(100vh - 65px); 
+  /* Restricts the viewport height so components fit completely above the 65px ad cutout */
+  height: calc(100vh - 65px);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
   padding: 20px;
   box-sizing: border-box;
-  /* Push everything up away from the bottom navigation/ad layer */
-  margin-bottom: 65px; 
+  /* Leaves a safe empty structural background gap at the bottom for the ad */
+  margin-bottom: 65px;
 }
 
 @keyframes fadeIn {
