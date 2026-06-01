@@ -19,7 +19,7 @@ async function showPermanentBanner() {
         await AdMob.showBanner({
             adId: BANNER_AD_ID,
             position: 'BOTTOM_CENTER',
-            margin: 65, // Changed from 0 to 65 to fit your updated CSS margin
+            margin: 0,
             adSize: 'BANNER',
             isTesting: false
         });
@@ -75,6 +75,12 @@ document.addEventListener('deviceready', async () => {
             AdMob.addListener('interstitialAdDismissed', () => {
                 isInterstitialAdCached = false;
                 console.log("Interstitial ad closed by user.");
+                
+                // Audio recovery listener to bring back music smoothly after an ad ends
+                if (elements.toggles.music.checked) {
+                    elements.audio.bgMusic.play().catch(e => console.log("Audio recovery failed:", e));
+                }
+                
                 preloadNextInterstitial(); // Cache the next one immediately
             });
 
@@ -815,12 +821,25 @@ function submitAnswer() {
     msg.className = "result";
     playCorrectSound();
     
-    fireConfetti(() => {
+    fireConfetti(async () => {
       if (!solved.includes(currentLevel)) {
         solved.push(currentLevel);
         localStorage.setItem("solvedLevels", JSON.stringify(solved));
         updateAchievements();
       }
+
+      // Amazon Compliant Ad Placement: Run interstitial ads here during natural layout switches
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isInterstitialAdCached) {
+        const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
+        if (musicWasPlaying) elements.audio.bgMusic.pause();
+
+        try {
+          await window.Capacitor.Plugins.AdMob.showInterstitial();
+        } catch (adError) {
+          console.error("AdMob show error:", adError);
+        }
+      }
+
       currentLevel++;
       localStorage.setItem("currentLevel", currentLevel);
       playLevelCompleteSound();
@@ -857,7 +876,6 @@ function revealHint() {
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
   elements.hintPopup.classList.add("active");
-  if (AdMob && bannerInitialized) { try { AdMob.hideBanner(); } catch(e){} }
   hintsUsed[currentLevel] = (hintsUsed[currentLevel] || 0) + 1;
   localStorage.setItem("hintsUsed", JSON.stringify(hintsUsed));
   elements.buttons.solution.disabled = false;
@@ -874,63 +892,27 @@ function revealSolution() {
   const r = riddles[currentLevel - 1];
   elements.gameElements.solutionText.textContent = r.solution;
   elements.solutionPopup.classList.add("active");
-  if (AdMob && bannerInitialized) { try { AdMob.hideBanner(); } catch(e){} }
 }
 
-// Action handlers incorporating smooth audio management + Ad Interruption
+// Fixed Hint & Solution actions: Content is delivered instantly to clear UX disruptions
 async function showHint() {
   playClick();
-
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isInterstitialAdCached) {
-    const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
-    if (musicWasPlaying) elements.audio.bgMusic.pause();
-
-    try {
-      await window.Capacitor.Plugins.AdMob.showInterstitial();
-    } catch (adError) {
-      console.error("AdMob show error:", adError);
-    }
-  } else {
-    console.log("No interstitial ad cached. Showing hint immediately.");
-  }
-  
   revealHint(); 
 }
 
 async function showSolution() {
   playClick();
-
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isInterstitialAdCached) {
-    const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
-    if (musicWasPlaying) elements.audio.bgMusic.pause();
-
-    try {
-      await window.Capacitor.Plugins.AdMob.showInterstitial();
-    } catch (adError) {
-      console.error("AdMob show error:", adError);
-    }
-  } else {
-    console.log("No interstitial ad cached. Showing solution immediately.");
-  }
-
   revealSolution();
 }
 
-// Upgraded popup visibility managers to comply with Amazon ad overlap policies
-async function hideHintPopup() {
+function hideHintPopup() {
   playClick();
   elements.hintPopup.classList.remove("active");
-  if (AdMob && bannerInitialized) {
-    try { await AdMob.resumeBanner(); } catch (e) { console.log(e); }
-  }
 }
 
-async function hideSolutionPopup() {
+function hideSolutionPopup() {
   playClick();
   elements.solutionPopup.classList.remove("active");
-  if (AdMob && bannerInitialized) {
-    try { await AdMob.resumeBanner(); } catch (e) { console.log(e); }
-  }
 }
 
 function fireConfetti(callback) {
@@ -1039,10 +1021,4 @@ function initParticles() {
   animateParticles();
 }
 
-// Listen to native hardware readiness instead of raw web content loading strings
-document.addEventListener("deviceready", initGame, false);
-
-// Web-based simulation fallback wrapper
-if (!window.Capacitor) {
-  document.addEventListener("DOMContentLoaded", initGame);
-}
+document.addEventListener("DOMContentLoaded", initGame);
