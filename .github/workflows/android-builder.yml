@@ -30,14 +30,14 @@ jobs:
       run: |
         mkdir -p dist
         cp index.html styles.css script.js dist/
-        # Safely copy internal audio properties if available
+        # Safely copy internal audio assets if they exist in your root directory
         cp bg-music.mp3 correct-answer.mp3 wrong-answer.mp3 dist/ 2>/dev/null || true
 
     - name: Create Capacitor Config
       run: |
         printf '{\n  "appId": "com.ayush.mathsriddle",\n  "appName": "Math Riddles",\n  "webDir": "dist",\n  "bundledWebRuntime": false\n}\n' > capacitor.config.json
 
-    - name: Add & Sync Capacitor Android
+    - name: Add & Sync Capacitor Android (First)
       run: |
         if [ ! -d "android" ]; then
           npx cap add android
@@ -53,20 +53,15 @@ jobs:
           fi
         fi
 
-    - name: Inject Namespace into build.gradle
+    - name: Inject Namespace and Enforce Signing in build.gradle
       run: |
         GRADLE="android/app/build.gradle"
         if [ -f "$GRADLE" ]; then
+          # Inject project package namespace if missing
           if ! grep -q "namespace" "$GRADLE"; then
             sed -i '/android {/a\    namespace "com.ayush.mathsriddle"' "$GRADLE"
           fi
-        fi
-
-    - name: Enforce Default Signing for Release Output
-      run: |
-        GRADLE="android/app/build.gradle"
-        if [ -f "$GRADLE" ]; then
-          # Forces the release configuration to fallback on standard build signing
+          # Force the release compiler to use standard default signing blocks so it creates a clean file
           sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' "$GRADLE" || true
         fi
 
@@ -75,10 +70,10 @@ jobs:
         cd android
         ./gradlew assembleRelease --no-daemon
 
-    - name: Identify and Bundle Production File
+    - name: Locate and Secure Built App Binary
       run: |
         mkdir -p final-artifact
-        # Recursively locates the generated release binary file and moves it safely
+        # Recursively scan the entire output tree for the newly built package and copy it over safely
         find android/app/build/outputs/apk/ -name "*.apk" -exec cp {} final-artifact/Math-Riddles-Production.apk \;
 
     - name: Upload Production APK Asset
