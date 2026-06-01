@@ -8,6 +8,9 @@ let bannerInitialized = false;
 let bannerRetryTimer = null;
 let bannerRetryDelay = 5000;
 
+// Set to true ONLY when the user earns the reward by completing the ad
+let pendingHintReward = false;
+
 // Resilient Banner Automation Loop - Kept structural, solid, and non-destructive
 async function showPermanentBanner() {
     if (!AdMob) return;
@@ -69,8 +72,20 @@ document.addEventListener('deviceready', async () => {
                 isRewardedAdCached = false;
             });
 
+            // Fires only when user fully watches the ad and earns the reward
+            AdMob.addListener('onRewardedAdUserDidEarnReward', () => {
+                console.log("Reward earned — hint unlock confirmed.");
+                pendingHintReward = true;
+            });
+
+            // Fires when the ad closes (after reward event if earned)
             AdMob.addListener('rewardedAdDismissed', () => {
                 isRewardedAdCached = false;
+                // Only reveal hint if reward was actually earned
+                if (pendingHintReward) {
+                    pendingHintReward = false;
+                    revealHint();
+                }
                 preloadNextRewardedAd();
             });
 
@@ -869,39 +884,52 @@ function submitAnswer() {
 }
 
 // FIX: OFFICIAL COMMUNITY ADMOB DISPLAY METHOD IMPLEMENTATIONS WITH COMPREHENSIVE AUDIO SAFEGUARDS
-async function showHint() {
-  playClick();
-  
-  const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
-  if (musicWasPlaying) {
-    elements.audio.bgMusic.pause();
-  }
 
-  // Structured native rewarded playback using standard community properties
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
-    try {
-      await window.Capacitor.Plugins.AdMob.showRewardedAd();
-      console.log("Native video tracked and shown.");
-    } catch (adError) {
-      console.error("AdMob display runtime exception:", adError);
-    }
-  } else {
-    console.log("Ad asset not cached yet. Bypassing safely via production standard content logic.");
-  }
-
-  if (musicWasPlaying) {
+// Separated reveal logic — called ONLY from rewardedAdDismissed after reward is confirmed earned
+function revealHint() {
+  // Resume music if it was playing before the ad
+  const musicPref = elements.toggles.music.checked;
+  if (musicPref && elements.audio.bgMusic.paused) {
     elements.audio.bgMusic.play().catch(console.error);
   }
-
-  // Unlock logic sequence run detached from network latency status
   playHintSound();
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
   elements.hintPopup.classList.add("active");
   hintsUsed[currentLevel] = (hintsUsed[currentLevel] || 0) + 1;
   localStorage.setItem("hintsUsed", JSON.stringify(hintsUsed));
-  elements.buttons.solution.disabled = false; 
-  renderLevels(); 
+  elements.buttons.solution.disabled = false;
+  renderLevels();
+}
+
+async function showHint() {
+  playClick();
+
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
+    // Pause music before ad starts
+    const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
+    if (musicWasPlaying) {
+      elements.audio.bgMusic.pause();
+    }
+
+    // Reset flag — hint will only unlock if onRewardedAdUserDidEarnReward fires
+    pendingHintReward = false;
+
+    try {
+      await window.Capacitor.Plugins.AdMob.showRewardedAd();
+      console.log("Rewarded ad launched for hint — awaiting reward confirmation.");
+      // DO NOT reveal hint here — rewardedAdDismissed handles it after reward check
+    } catch (adError) {
+      console.error("AdMob display error:", adError);
+      // Ad crashed mid-show — resume music and give hint as graceful fallback
+      if (musicWasPlaying) elements.audio.bgMusic.play().catch(console.error);
+      revealHint();
+    }
+  } else {
+    // No ad cached — give hint for free as fallback (standard production behaviour)
+    console.log("No ad cached. Granting hint for free.");
+    revealHint();
+  }
 }
 
 async function showSolution() {
@@ -915,12 +943,12 @@ async function showSolution() {
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
     try {
       await window.Capacitor.Plugins.AdMob.showRewardedAd();
-      console.log("Native solution video tracked and shown.");
+      console.log("Rewarded ad shown for solution.");
     } catch (adError) {
-      console.error("AdMob display runtime exception:", adError);
+      console.error("AdMob display error:", adError);
     }
   } else {
-    console.log("Ad asset not cached yet. Granting solution access.");
+    console.log("No ad cached. Showing solution for free.");
   }
 
   if (musicWasPlaying) {
