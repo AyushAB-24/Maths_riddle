@@ -16,20 +16,21 @@ async function showPermanentBanner() {
     if (bannerRetryTimer) { clearTimeout(bannerRetryTimer); bannerRetryTimer = null; }
 
     try {
-        await AdMob.showBanner({
-            adId: BANNER_AD_ID,
-            position: 'BOTTOM_CENTER',
-            margin: 0,
-            adSize: 'BANNER',
-            isTesting: false
-        });
-        bannerInitialized = true;
-        bannerRetryDelay = 5000; 
-        console.log("Permanent bottom anchor banner attached.");
-    } catch (e) {
-        console.warn("Permanent banner loading delayed:", e);
-        scheduleBannerRetry();
-    }
+    await AdMob.showBanner({
+        adId: BANNER_AD_ID,
+        position: 'BOTTOM_CENTER',
+        margin: 0,
+        // --- CHANGE THIS LINE FOR A SMALLER, SCREEN-OPTIMIZED PROFILE ---
+        adSize: 'ADAPTIVE_BANNER', 
+        isTesting: false
+    });
+    bannerInitialized = true;
+    bannerRetryDelay = 5000; 
+    console.log("Permanent bottom anchor banner attached.");
+} catch (e) {
+    console.warn("Permanent banner loading delayed:", e);
+    scheduleBannerRetry();
+}
 }
 
 function scheduleBannerRetry() {
