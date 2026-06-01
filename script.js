@@ -19,7 +19,7 @@ async function showPermanentBanner() {
         await AdMob.showBanner({
             adId: BANNER_AD_ID,
             position: 'BOTTOM_CENTER',
-            margin: 0,
+            margin: 65, // Changed from 0 to 65 to fit your updated CSS margin
             adSize: 'BANNER',
             isTesting: false
         });
