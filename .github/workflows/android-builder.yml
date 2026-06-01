@@ -63,6 +63,16 @@ jobs:
           fi
         fi
 
+    - name: Update Version to 2.0 (Version Code 2)
+      run: |
+        GRADLE="android/app/build.gradle"
+        if [ -f "$GRADLE" ]; then
+          # Updates the internal version code tracking number to 2
+          sed -i 's/versionCode [0-9]*/versionCode 2/g' "$GRADLE"
+          # Updates the user-visible version string to 2.0
+          sed -i 's/versionName "[0-9.]*"/versionName "2.0"/g' "$GRADLE"
+        fi
+
     - name: Compile Debug APK
       run: |
         cd android
