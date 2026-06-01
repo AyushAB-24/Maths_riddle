@@ -30,7 +30,7 @@ jobs:
       run: |
         mkdir -p dist
         cp index.html styles.css script.js dist/
-        # Copy local audio assets safely if they exist
+        # Safely copy internal audio properties if available
         cp bg-music.mp3 correct-answer.mp3 wrong-answer.mp3 dist/ 2>/dev/null || true
 
     - name: Create Capacitor Config
@@ -62,17 +62,27 @@ jobs:
           fi
         fi
 
+    - name: Enforce Default Signing for Release Output
+      run: |
+        GRADLE="android/app/build.gradle"
+        if [ -f "$GRADLE" ]; then
+          # Forces the release configuration to fallback on standard build signing
+          sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' "$GRADLE" || true
+        fi
+
     - name: Build Production Release APK
       run: |
         cd android
         ./gradlew assembleRelease --no-daemon
 
-    - name: Rename Production File
+    - name: Identify and Bundle Production File
       run: |
-        mv android/app/build/outputs/apk/release/app-release-unsigned.apk android/app/build/outputs/apk/release/Math-Riddles-Production.apk
+        mkdir -p final-artifact
+        # Recursively locates the generated release binary file and moves it safely
+        find android/app/build/outputs/apk/ -name "*.apk" -exec cp {} final-artifact/Math-Riddles-Production.apk \;
 
     - name: Upload Production APK Asset
       uses: actions/upload-artifact@v4
       with:
         name: Production-APK
-        path: android/app/build/outputs/apk/release/Math-Riddles-Production.apk
+        path: final-artifact/Math-Riddles-Production.apk
