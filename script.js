@@ -8,7 +8,7 @@ let bannerInitialized = false;
 let bannerRetryTimer = null;
 let bannerRetryDelay = 5000;
 
-// Set to true ONLY when the user earns the reward by completing the ad
+// true only when user fully watches the rewarded ad
 let pendingHintReward = false;
 
 // Resilient Banner Automation Loop - Kept structural, solid, and non-destructive
@@ -62,26 +62,26 @@ document.addEventListener('deviceready', async () => {
                 scheduleBannerRetry();
             });
 
-            // Rewarded ad asset listeners
-            AdMob.addListener('rewardedAdLoaded', () => {
+            // ── Rewarded ad listeners (CORRECT official event strings) ──────────
+            AdMob.addListener('rewardedVideoAdLoaded', () => {
                 isRewardedAdCached = true;
-                console.log("Rewarded ad asset cached safely.");
+                console.log("Rewarded ad loaded.");
             });
 
-            AdMob.addListener('rewardedAdFailedToLoad', () => {
+            AdMob.addListener('rewardedVideoAdFailedToLoad', (error) => {
                 isRewardedAdCached = false;
+                console.warn("Rewarded ad failed to load:", error);
             });
 
-            // Fires only when user fully watches the ad and earns the reward
-            AdMob.addListener('onRewardedAdUserDidEarnReward', () => {
-                console.log("Reward earned — hint unlock confirmed.");
+            // Fires ONLY when user earns the reward (watched the full ad)
+            AdMob.addListener('onRewardedVideoAdRewarded', (reward) => {
+                console.log("Reward earned:", reward);
                 pendingHintReward = true;
             });
 
-            // Fires when the ad closes (after reward event if earned)
-            AdMob.addListener('rewardedAdDismissed', () => {
+            // Fires when the ad closes — AFTER the reward event if user finished
+            AdMob.addListener('rewardedVideoAdClosed', () => {
                 isRewardedAdCached = false;
-                // Only reveal hint if reward was actually earned
                 if (pendingHintReward) {
                     pendingHintReward = false;
                     revealHint();
@@ -116,15 +116,16 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// Helper sequence to pre-load rewarded assets using official community method names
+// Preload next rewarded ad — correct method: prepareRewardVideoAd
 async function preloadNextRewardedAd() {
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         try {
-            await window.Capacitor.Plugins.AdMob.loadRewardedAd({
-                adId: REWARDED_AD_ID
+            await window.Capacitor.Plugins.AdMob.prepareRewardVideoAd({
+                adId: REWARDED_AD_ID,
+                isTesting: false
             });
         } catch (e) {
-            console.log("Ad preload cycle caught cleanly:", e);
+            console.warn("Rewarded ad preload failed:", e);
         }
     }
 }
@@ -883,11 +884,10 @@ function submitAnswer() {
   }
 }
 
-// FIX: OFFICIAL COMMUNITY ADMOB DISPLAY METHOD IMPLEMENTATIONS WITH COMPREHENSIVE AUDIO SAFEGUARDS
+// FIX: CORRECT OFFICIAL @capacitor-community/admob METHOD AND EVENT NAMES
 
-// Separated reveal logic — called ONLY from rewardedAdDismissed after reward is confirmed earned
+// Called ONLY from rewardedVideoAdClosed after onRewardedVideoAdRewarded has fired
 function revealHint() {
-  // Resume music if it was playing before the ad
   const musicPref = elements.toggles.music.checked;
   if (musicPref && elements.audio.bgMusic.paused) {
     elements.audio.bgMusic.play().catch(console.error);
@@ -906,28 +906,26 @@ async function showHint() {
   playClick();
 
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
-    // Pause music before ad starts
     const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
     if (musicWasPlaying) {
       elements.audio.bgMusic.pause();
     }
 
-    // Reset flag — hint will only unlock if onRewardedAdUserDidEarnReward fires
-    pendingHintReward = false;
+    pendingHintReward = false; // reset — only set by onRewardedVideoAdRewarded
 
     try {
-      await window.Capacitor.Plugins.AdMob.showRewardedAd();
-      console.log("Rewarded ad launched for hint — awaiting reward confirmation.");
-      // DO NOT reveal hint here — rewardedAdDismissed handles it after reward check
+      // CORRECT method name: showRewardVideoAd (not showRewardedAd / showRewardedVideoAd)
+      await window.Capacitor.Plugins.AdMob.showRewardVideoAd();
+      console.log("Rewarded ad launched. Waiting for reward event...");
+      // DO NOT reveal hint here — rewardedVideoAdClosed handles it conditionally
     } catch (adError) {
-      console.error("AdMob display error:", adError);
-      // Ad crashed mid-show — resume music and give hint as graceful fallback
+      console.error("AdMob show error:", adError);
       if (musicWasPlaying) elements.audio.bgMusic.play().catch(console.error);
-      revealHint();
+      revealHint(); // graceful fallback if ad crashes
     }
   } else {
-    // No ad cached — give hint for free as fallback (standard production behaviour)
-    console.log("No ad cached. Granting hint for free.");
+    // Ad not ready — give hint for free as fallback
+    console.log("No rewarded ad cached. Showing hint for free.");
     revealHint();
   }
 }
@@ -942,13 +940,14 @@ async function showSolution() {
 
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
     try {
-      await window.Capacitor.Plugins.AdMob.showRewardedAd();
+      // CORRECT method name: showRewardVideoAd
+      await window.Capacitor.Plugins.AdMob.showRewardVideoAd();
       console.log("Rewarded ad shown for solution.");
     } catch (adError) {
-      console.error("AdMob display error:", adError);
+      console.error("AdMob show error:", adError);
     }
   } else {
-    console.log("No ad cached. Showing solution for free.");
+    console.log("No rewarded ad cached. Showing solution for free.");
   }
 
   if (musicWasPlaying) {
