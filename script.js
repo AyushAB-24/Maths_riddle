@@ -857,6 +857,7 @@ function revealHint() {
   const r = riddles[currentLevel - 1];
   elements.gameElements.hintText.textContent = r.hint;
   elements.hintPopup.classList.add("active");
+  if (AdMob && bannerInitialized) { try { AdMob.hideBanner(); } catch(e){} }
   hintsUsed[currentLevel] = (hintsUsed[currentLevel] || 0) + 1;
   localStorage.setItem("hintsUsed", JSON.stringify(hintsUsed));
   elements.buttons.solution.disabled = false;
@@ -873,6 +874,7 @@ function revealSolution() {
   const r = riddles[currentLevel - 1];
   elements.gameElements.solutionText.textContent = r.solution;
   elements.solutionPopup.classList.add("active");
+  if (AdMob && bannerInitialized) { try { AdMob.hideBanner(); } catch(e){} }
 }
 
 // Action handlers incorporating smooth audio management + Ad Interruption
@@ -914,14 +916,21 @@ async function showSolution() {
   revealSolution();
 }
 
-function hideHintPopup() {
+// Upgraded popup visibility managers to comply with Amazon ad overlap policies
+async function hideHintPopup() {
   playClick();
   elements.hintPopup.classList.remove("active");
+  if (AdMob && bannerInitialized) {
+    try { await AdMob.resumeBanner(); } catch (e) { console.log(e); }
+  }
 }
 
-function hideSolutionPopup() {
+async function hideSolutionPopup() {
   playClick();
   elements.solutionPopup.classList.remove("active");
+  if (AdMob && bannerInitialized) {
+    try { await AdMob.resumeBanner(); } catch (e) { console.log(e); }
+  }
 }
 
 function fireConfetti(callback) {
@@ -1030,4 +1039,10 @@ function initParticles() {
   animateParticles();
 }
 
-document.addEventListener("DOMContentLoaded", initGame);
+// Listen to native hardware readiness instead of raw web content loading strings
+document.addEventListener("deviceready", initGame, false);
+
+// Web-based simulation fallback wrapper
+if (!window.Capacitor) {
+  document.addEventListener("DOMContentLoaded", initGame);
+}
