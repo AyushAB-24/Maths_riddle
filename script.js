@@ -1,20 +1,17 @@
-// Global tracking properties using official Capacitor community standards
-let isRewardedAdCached = false;
-const REWARDED_AD_ID = 'ca-app-pub-1825832964235064/8252422930';
+// Global tracking properties using modern Capacitor community standards
+let isInterstitialAdCached = false;
 const BANNER_AD_ID = 'ca-app-pub-1825832964235064/5196004433';
+const INTERSTITIAL_AD_ID = 'ca-app-pub-1825832964235064/9070147755';
 
 let AdMob = null;
 let bannerInitialized = false;
 let bannerRetryTimer = null;
 let bannerRetryDelay = 5000;
 
-// true only when user fully watches the rewarded ad
-let pendingHintReward = false;
-
-// Resilient Banner Automation Loop - Kept structural, solid, and non-destructive
+// Resilient Banner Automation Loop
 async function showPermanentBanner() {
     if (!AdMob) return;
-    if (bannerInitialized) return; // Locks execution into one clean permanent instance
+    if (bannerInitialized) return; 
 
     if (bannerRetryTimer) { clearTimeout(bannerRetryTimer); bannerRetryTimer = null; }
 
@@ -27,7 +24,7 @@ async function showPermanentBanner() {
             isTesting: false
         });
         bannerInitialized = true;
-        bannerRetryDelay = 5000; // Reset exponential backoff state on clear connection
+        bannerRetryDelay = 5000; 
         console.log("Permanent bottom anchor banner attached.");
     } catch (e) {
         console.warn("Permanent banner loading delayed:", e);
@@ -49,7 +46,7 @@ document.addEventListener('deviceready', async () => {
         try {
             AdMob = window.Capacitor.Plugins.AdMob;
 
-            // Register lifecycle tracking protocols BEFORE bootstrap
+            // Register Banner lifecycle tracking protocols
             AdMob.addListener('bannerAdLoaded', () => {
                 bannerInitialized = true;
                 bannerRetryDelay = 5000;
@@ -62,39 +59,31 @@ document.addEventListener('deviceready', async () => {
                 scheduleBannerRetry();
             });
 
-            // ── Rewarded ad listeners (CORRECT official event strings) ──────────
-            AdMob.addListener('rewardedVideoAdLoaded', () => {
-                isRewardedAdCached = true;
-                console.log("Rewarded ad loaded.");
+            // Modern Interstitial Ad Listeners
+            AdMob.addListener('interstitialAdLoaded', () => {
+                isInterstitialAdCached = true;
+                console.log("Interstitial ad successfully cached.");
             });
 
-            AdMob.addListener('rewardedVideoAdFailedToLoad', (error) => {
-                isRewardedAdCached = false;
-                console.warn("Rewarded ad failed to load:", error);
+            AdMob.addListener('interstitialAdFailedToLoad', (error) => {
+                isInterstitialAdCached = false;
+                console.warn("Interstitial ad failed to load:", error);
+                // Try preloading again later
+                setTimeout(preloadNextInterstitial, 15000);
             });
 
-            // Fires ONLY when user earns the reward (watched the full ad)
-            AdMob.addListener('onRewardedVideoAdRewarded', (reward) => {
-                console.log("Reward earned:", reward);
-                pendingHintReward = true;
-            });
-
-            // Fires when the ad closes — AFTER the reward event if user finished
-            AdMob.addListener('rewardedVideoAdClosed', () => {
-                isRewardedAdCached = false;
-                if (pendingHintReward) {
-                    pendingHintReward = false;
-                    revealHint();
-                }
-                preloadNextRewardedAd();
+            AdMob.addListener('interstitialAdDismissed', () => {
+                isInterstitialAdCached = false;
+                console.log("Interstitial ad closed by user.");
+                preloadNextInterstitial(); // Cache the next one immediately
             });
 
             await AdMob.initialize({ requestTrackingAuthorization: true });
             console.log("AdMob native bridge ready.");
 
-            // Launch permanently locked banner assets and stack standard preloads
+            // Launch permanently locked banner assets and preload standard interstitial
             showPermanentBanner();
-            preloadNextRewardedAd();
+            preloadNextInterstitial();
 
         } catch (adInitError) {
             console.error("AdMob initialization halted:", adInitError);
@@ -116,16 +105,16 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// Preload next rewarded ad — correct method: prepareRewardVideoAd
-async function preloadNextRewardedAd() {
+// Preload next Interstitial Ad using modern API syntax
+async function preloadNextInterstitial() {
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         try {
-            await window.Capacitor.Plugins.AdMob.prepareRewardVideoAd({
-                adId: REWARDED_AD_ID,
+            await window.Capacitor.Plugins.AdMob.prepareInterstitial({
+                adId: INTERSTITIAL_AD_ID,
                 isTesting: false
             });
         } catch (e) {
-            console.warn("Rewarded ad preload failed:", e);
+            console.warn("Interstitial ad preload failed:", e);
         }
     }
 }
@@ -502,7 +491,6 @@ const elements = {
 };
 
 function initGame() {
-  // Balanced volume configurations to prevent hardware distortion on Android channels
   elements.audio.bgMusic.volume = 0.3;
   elements.audio.click.volume = 0.6;
   elements.audio.correct.volume = 0.5;
@@ -517,7 +505,6 @@ function initGame() {
   if (musicPref !== "off") {
     elements.toggles.music.checked = true;
     
-    // Fallback loops bypassing WebView autoplay sandbox criteria
     const startMusicOnInteraction = () => {
       elements.audio.bgMusic.play().catch(console.error);
     };
@@ -553,7 +540,6 @@ function initGame() {
 }
 
 function setupEventListeners() {
-  // Continuous execution blocker pattern ensuring safety from multi-touch injection
   function once(fn, delay = 400) {
     let blocked = false;
     return function (...args) {
@@ -635,7 +621,6 @@ function hideQuitModal() {
   elements.quitModal.classList.remove("active");
 }
 
-// FIX: EXPLICIT CAPACITOR PLUGINS TARGETED AND STABLE CONTAINER DESTRUCTION METHOD
 function confirmQuit() {
   playClick();
   elements.quitModal.classList.remove("active");
@@ -693,33 +678,13 @@ function playSound(sound) {
   }
 }
 
-function playClick() {
-  playSound(elements.audio.click);
-}
-
-function playCorrectSound() {
-  playSound(elements.audio.correct);
-}
-
-function playWrongSound() {
-  playSound(elements.audio.wrong);
-}
-
-function playLevelCompleteSound() {
-  playSound(elements.audio.levelComplete);
-}
-
-function playHintSound() {
-  playSound(elements.audio.hint);
-}
-
-function playSolutionSound() {
-  playSound(elements.audio.solution);
-}
-
-function playScreenTransitionSound() {
-  playSound(elements.audio.screenTransition);
-}
+function playClick() { playSound(elements.audio.click); }
+function playCorrectSound() { playSound(elements.audio.correct); }
+function playWrongSound() { playSound(elements.audio.wrong); }
+function playLevelCompleteSound() { playSound(elements.audio.levelComplete); }
+function playHintSound() { playSound(elements.audio.hint); }
+function playSolutionSound() { playSound(elements.audio.solution); }
+function playScreenTransitionSound() { playSound(elements.audio.screenTransition); }
 
 function showScreen(id) {
   playScreenTransitionSound();
@@ -732,9 +697,7 @@ function showScreen(id) {
   }
 }
 
-function startGame() {
-  loadLevel(currentLevel);
-}
+function startGame() { loadLevel(currentLevel); }
 
 function renderLevels() {
   const grid = elements.gameElements.levelButtons;
@@ -884,9 +847,7 @@ function submitAnswer() {
   }
 }
 
-// FIX: CORRECT OFFICIAL @capacitor-community/admob METHOD AND EVENT NAMES
-
-// Called ONLY from rewardedVideoAdClosed after onRewardedVideoAdRewarded has fired
+// Core Display Logic for Hints
 function revealHint() {
   const musicPref = elements.toggles.music.checked;
   if (musicPref && elements.audio.bgMusic.paused) {
@@ -902,62 +863,55 @@ function revealHint() {
   renderLevels();
 }
 
+// Core Display Logic for Solutions
+function revealSolution() {
+  const musicPref = elements.toggles.music.checked;
+  if (musicPref && elements.audio.bgMusic.paused) {
+    elements.audio.bgMusic.play().catch(console.error);
+  }
+  playSolutionSound();
+  const r = riddles[currentLevel - 1];
+  elements.gameElements.solutionText.textContent = r.solution;
+  elements.solutionPopup.classList.add("active");
+}
+
+// Action handlers incorporating smooth audio management + Ad Interruption
 async function showHint() {
   playClick();
 
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isInterstitialAdCached) {
     const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
-    if (musicWasPlaying) {
-      elements.audio.bgMusic.pause();
-    }
-
-    pendingHintReward = false; // reset — only set by onRewardedVideoAdRewarded
+    if (musicWasPlaying) elements.audio.bgMusic.pause();
 
     try {
-      // CORRECT method name: showRewardVideoAd (not showRewardedAd / showRewardedVideoAd)
-      await window.Capacitor.Plugins.AdMob.showRewardVideoAd();
-      console.log("Rewarded ad launched. Waiting for reward event...");
-      // DO NOT reveal hint here — rewardedVideoAdClosed handles it conditionally
+      await window.Capacitor.Plugins.AdMob.showInterstitial();
     } catch (adError) {
       console.error("AdMob show error:", adError);
-      if (musicWasPlaying) elements.audio.bgMusic.play().catch(console.error);
-      revealHint(); // graceful fallback if ad crashes
     }
   } else {
-    // Ad not ready — give hint for free as fallback
-    console.log("No rewarded ad cached. Showing hint for free.");
-    revealHint();
+    console.log("No interstitial ad cached. Showing hint immediately.");
   }
+  
+  revealHint(); 
 }
 
 async function showSolution() {
   playClick();
 
-  const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
-  if (musicWasPlaying) {
-    elements.audio.bgMusic.pause();
-  }
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isInterstitialAdCached) {
+    const musicWasPlaying = elements.toggles.music.checked && !elements.audio.bgMusic.paused;
+    if (musicWasPlaying) elements.audio.bgMusic.pause();
 
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob && isRewardedAdCached) {
     try {
-      // CORRECT method name: showRewardVideoAd
-      await window.Capacitor.Plugins.AdMob.showRewardVideoAd();
-      console.log("Rewarded ad shown for solution.");
+      await window.Capacitor.Plugins.AdMob.showInterstitial();
     } catch (adError) {
       console.error("AdMob show error:", adError);
     }
   } else {
-    console.log("No rewarded ad cached. Showing solution for free.");
+    console.log("No interstitial ad cached. Showing solution immediately.");
   }
 
-  if (musicWasPlaying) {
-    elements.audio.bgMusic.play().catch(console.error);
-  }
-
-  playSolutionSound();
-  const r = riddles[currentLevel - 1];
-  elements.gameElements.solutionText.textContent = r.solution;
-  elements.solutionPopup.classList.add("active");
+  revealSolution();
 }
 
 function hideHintPopup() {
