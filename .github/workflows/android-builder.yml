@@ -30,8 +30,8 @@ jobs:
       run: |
         mkdir -p dist
         cp index.html styles.css script.js dist/
-        # Copy audio assets — required for in-app music and sound effects
-        cp bg-music.mp3 correct-answer.mp3 wrong-answer.mp3 dist/
+        # Copy local audio assets safely if they exist
+        cp bg-music.mp3 correct-answer.mp3 wrong-answer.mp3 dist/ 2>/dev/null || true
 
     - name: Create Capacitor Config
       run: |
@@ -39,7 +39,6 @@ jobs:
 
     - name: Add & Sync Capacitor Android
       run: |
-        # Only add android platform if it hasn't been added yet
         if [ ! -d "android" ]; then
           npx cap add android
         fi
@@ -50,7 +49,7 @@ jobs:
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST" ]; then
           if ! grep -q "com.google.android.gms.ads.APPLICATION_ID" "$MANIFEST"; then
-            sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-1825832964235064~3094905301"/>\n    </application>|' "$MANIFEST"
+            sed -i 's|</application>|    <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-1825832964235064~3094905301\"/>\n    </application>|' "$MANIFEST"
           fi
         fi
 
@@ -63,14 +62,17 @@ jobs:
           fi
         fi
 
-    - name: Compile Debug APK
+    - name: Build Production Release APK
       run: |
         cd android
-        chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleRelease --no-daemon
 
-    - name: Upload APK Artifact
+    - name: Rename Production File
+      run: |
+        mv android/app/build/outputs/apk/release/app-release-unsigned.apk android/app/build/outputs/apk/release/Math-Riddles-Production.apk
+
+    - name: Upload Production APK Asset
       uses: actions/upload-artifact@v4
       with:
-        name: math-riddles-live-ads
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        name: Production-APK
+        path: android/app/build/outputs/apk/release/Math-Riddles-Production.apk
