@@ -65,18 +65,19 @@ body {
 }
 
 .container {
-  max-width: 480px;
+  position: relative;
   width: 100%;
-  /* Restricts the viewport height so components fit completely above the 65px ad cutout */
-  height: calc(100vh - 65px);
+  max-width: 500px;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow: hidden;
+  justify-content: space-between;
   padding: 20px;
   box-sizing: border-box;
-  /* Leaves a safe empty structural background gap at the bottom for the ad */
-  margin-bottom: 65px;
+  z-index: 10;
+  
+  /* --- ADD THIS TO RESERVE SPACE FOR THE BANNER --- */
+  margin-bottom: 60px; /* Standard Adaptive/Smart Banner height is 50px-60px */
 }
 
 @keyframes fadeIn {
