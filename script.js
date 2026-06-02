@@ -691,14 +691,23 @@ function playHintSound() { playSound(elements.audio.hint); }
 function playSolutionSound() { playSound(elements.audio.solution); }
 function playScreenTransitionSound() { playSound(elements.audio.screenTransition); }
 
+// UPDATED: Standardized view switching router context to maintain permanent canvas visibility
 function showScreen(id) {
   playScreenTransitionSound();
   history.pushState({screen: id}, "", "#"+id);
   Object.values(elements.screens).forEach(s => s.classList.remove("active"));
   elements.screens[id.replace("Screen", "")].classList.add("active");
   playClick();
+  
   if (id === "levelsScreen") {
     animateLevelButtons();
+  }
+
+  // Forces active ad instances to remain layout-anchored instead of breaking during native container transitions
+  if (bannerInitialized && AdMob) {
+    AdMob.resumeBanner().catch(e => console.log("Banner state resume handled:", e));
+  } else {
+    showPermanentBanner();
   }
 }
 
