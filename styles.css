@@ -84,17 +84,24 @@ body {
   to { opacity: 1; }
 }
 
-/* Find this block and change it to match this exactly */
 .screen {
   display: none;
   width: 100%;
   height: 100%;
   flex-direction: column;
-  justify-content: space-between;
+  /* Changed from space-between to prevent pushing titles off-screen */
+  justify-content: flex-start; 
+  align-items: center;
   box-sizing: border-box;
   
-  /* This pushes your UI buttons upward so the ad can sit nicely underneath them */
-  padding-bottom: 75px !important;
+  /* Safe padding for the bottom ad, without destroying top spacing */
+  padding-bottom: 80px !important;
+  padding-top: 10px !important;
+}
+
+/* Ensure spacing between layout elements looks identical to the original */
+.screen > * {
+  margin-bottom: 12px;
 }
   
 .light-theme #levelsScreen,
