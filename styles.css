@@ -11,7 +11,7 @@
   --text-secondary: #D1D1D1; /* Brighter gray for readability */
   --font-main: 'Poppins', sans-serif;
   --font-mono: 'Roboto Mono', monospace;
-  --key-size: min(12vw, 50px); /* Slightly optimized for better mobile fitting */
+  --key-size: min(14vw, 55px); /* Restored to original size */
   --border-radius: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --glow-color: rgba(98, 0, 234, 0.7);
@@ -83,7 +83,7 @@ body.light-theme {
 }
 
 /* ==========================================================================
-   UPDATED: MASTER SCREEN STRUCTURE FOR EVEN LEVEL DISTRIBUTION
+   RESTORED: MASTER SCREEN STRUCTURE FOR PERFECT BANNER GAP
    ========================================================================== */
 .screen {
   display: none;
@@ -92,7 +92,7 @@ body.light-theme {
   flex-direction: column;
   justify-content: space-between; /* Evenly spreads header, card, and layout controls */
   align-items: center;
-  padding: 20px 20px 40px 20px !important; /* FIXED: Reduced huge bottom padding causing components to run off-screen */
+  padding: 30px 20px 95px 20px !important; /* Balanced bottom padding to perfectly clear the banner ad */
   box-sizing: border-box;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -104,7 +104,7 @@ body.light-theme {
 }
 
 /* ==========================================================================
-   UPDATED: HEADER SEGMENTS 
+   RESTORED: HEADER SEGMENTS
    ========================================================================== */
 .game-header {
   width: 100%;
@@ -112,7 +112,6 @@ body.light-theme {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 5px;
-  flex-shrink: 0;
 }
 
 #levelTitle {
@@ -145,23 +144,22 @@ body.light-theme {
 }
 
 /* ==========================================================================
-   UPDATED: PUZZLE VIEWPORT CARD
+   RESTORED: PUZZLE VIEWPORT CARD
    ========================================================================== */
 .puzzle-card {
   width: 100%;
-  flex-grow: 1; 
+  flex-grow: 1; /* Instructs the container card to comfortably use up available space */
   display: flex;
   justify-content: center;
   align-items: center;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
-  padding: 20px;
-  margin: 10px 0;
+  padding: 25px;
+  margin: 15px 0;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  overflow-y: auto; /* Ensures long questions can still scroll if screen is small */
 }
 
 .light-theme .puzzle-card {
@@ -172,8 +170,8 @@ body.light-theme {
 
 #questionText {
   color: #E0E0FF;
-  font-size: clamp(1.1rem, 3.8vw, 1.35rem);
-  line-height: 1.5;
+  font-size: clamp(1.15rem, 4vw, 1.4rem);
+  line-height: 1.6;
   text-align: center;
   font-weight: 500;
 }
@@ -486,26 +484,25 @@ h2 {
 }
 
 #riddleScreen {
-  padding-top: min(3vh, 15px);
+  padding-top: min(5vh, 25px);
 }
 
 .answer-section {
   width: 100%;
   max-width: 360px;
   margin-bottom: 5px;
-  flex-shrink: 0;
 }
 
 .answer-display {
   width: 100%;
-  height: 48px;
+  height: 52px;
   background: rgba(0,0,0,0.2);
   border: 2px solid var(--primary);
   border-radius: var(--border-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--secondary);
   font-family: var(--font-mono);
@@ -525,7 +522,7 @@ h2 {
   font-weight: 600;
   color: var(--secondary);
   text-align: center;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 .result.error {
@@ -544,9 +541,8 @@ h2 {
   max-width: 360px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: min(2vw, 8px);
-  margin-bottom: 10px;
-  flex-shrink: 0;
+  gap: min(3vw, 10px);
+  margin-bottom: 15px;
 }
 
 .key {
@@ -555,7 +551,7 @@ h2 {
   color: var(--text-primary);
   border: 1px solid rgba(255,255,255,0.02);
   border-radius: var(--border-radius);
-  font-size: min(5vw, 20px);
+  font-size: min(5.5vw, 22px);
   font-weight: 600;
   cursor: pointer;
   transition: background 0.1s ease, transform 0.1s ease;
@@ -577,7 +573,7 @@ h2 {
 }
 
 .action-key {
-  font-size: min(3.8vw, 14px);
+  font-size: min(4vw, 15px);
   font-weight: 500;
   text-transform: uppercase;
 }
@@ -603,7 +599,6 @@ h2 {
   display: grid;
   grid-template-columns: 1fr 1.2fr 1fr;
   gap: min(2.5vw, 10px);
-  flex-shrink: 0;
 }
 
 .action-btn {
