@@ -11,8 +11,8 @@
   --text-secondary: #D1D1D1; /* Brighter gray for readability */
   --font-main: 'Poppins', sans-serif;
   --font-mono: 'Roboto Mono', monospace;
-  /* SAFE CONTROL: Scaled down slightly to guarantee it fits on short mobile aspect ratios */
-  --key-size: min(11.5vw, 46px);
+  /* DYNAMIC SIZING: Perfectly proportioned keys for standard mobile screen heights */
+  --key-size: min(12vw, 48px);
   --border-radius: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --glow-color: rgba(98, 0, 234, 0.7);
@@ -66,21 +66,20 @@ body {
 }
 
 /* ==========================================================================
-   GLOBAL APP CONTAINER: Clean reserve for the 50px standard mobile banner
+   GLOBAL APP CONTAINER: Centers UI perfectly & secures ad footprint
    ========================================================================== */
 .container {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  padding: 10px 16px 0 16px;
+  justify-content: center; /* Centers layout vertically to pull header down away from the status bar */
+  padding: 16px 20px;
   box-sizing: border-box;
   z-index: 10;
-  /* Leaves exactly enough space at the bottom viewport layer for the banner ad */
-  margin-bottom: 50px; 
+  margin-bottom: 56px; /* Exactly clears standard 50px-56px mobile banner ads with no dead gaps */
 }
 
 @keyframes fadeIn {
@@ -88,23 +87,23 @@ body {
 }
 
 /* ==========================================================================
-   SCREEN LEVEL WRAPPER: Responsive column flow prevents top/bottom bleed
+   SCREEN CONTROLLER: Unified flex flow eliminates massive gaps at the bottom
    ========================================================================== */
 .screen {
   display: none;
   width: 100%;
-  height: 100%;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  padding-bottom: 15px;
+  padding-bottom: 0px; /* Reset extreme space padding to eliminate gaps */
 }
   
 .light-theme #levelsScreen,
 .light-theme #settingsScreen {
   background: var(--surface); 
   border-radius: var(--border-radius);
+  padding: 20px;
 }
 
 .active {
@@ -116,7 +115,7 @@ body {
 }
 
 #homeScreen h1 {
-  font-size: clamp(36px, 10vw, 48px);
+  font-size: clamp(38px, 11vw, 50px);
   color: var(--primary-light);
   text-align: center;
   margin: 15px 0 25px;
@@ -132,7 +131,7 @@ body {
 }
 
 #homeScreen .btn {
-  font-size: clamp(16px, 4vw, 20px);
+  font-size: clamp(16px, 4.2vw, 20px);
   padding: 14px;
   margin: 8px auto;
   max-width: 280px;
@@ -141,28 +140,28 @@ body {
 }
 
 /* ==========================================================================
-   HEADER / INDICATOR LAYER: Safe guard ensures it never goes off-screen
+   HEADER / LEVEL INDICATOR: Brought down cleanly into viewport
    ========================================================================== */
 h2 {
-  font-size: clamp(20px, 5.2vw, 25px) !important;
+  font-size: clamp(20px, 5.2vw, 24px) !important;
   color: var(--primary-light);
   text-align: center;
-  margin: 5px 0 8px 0;
+  margin: 0 0 10px 0;
   font-weight: 700;
-  flex-shrink: 0; /* CRITICAL: Prevents device screen from shrinking/hiding level indicator text */
+  flex-shrink: 0;
 }
 
 .btn {
   background: var(--primary);
   color: white;
   border: none;
-  padding: 11px;
-  font-size: clamp(13px, 3.5vw, 15px);
+  padding: 12px;
+  font-size: clamp(13.5px, 3.6vw, 15.5px);
   border-radius: var(--border-radius);
-  margin: 5px auto;
+  margin: 6px auto; /* Tighter margins prevent excessive height footprints */
   display: block;
   width: 100%;
-  max-width: 280px;
+  max-width: 290px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: var(--transition);
@@ -235,18 +234,18 @@ h2 {
 }
 
 #riddleScreen {
-  justify-content: flex-start;
+  justify-content: center;
   padding-top: 0;
 }
 
 /* ==========================================================================
-   GAME METRICS & CONTENT BOX
+   GAME CONTENT & PROGRESS MATRIX
    ========================================================================== */
 .game-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   width: 100%;
   padding: 0 4px;
 }
@@ -258,7 +257,7 @@ h2 {
   background: var(--bg-light);
   border-radius: var(--border-radius);
   overflow: hidden;
-  margin: 4px 0;
+  margin: 6px 0;
   flex-shrink: 0;
 }
 
@@ -270,20 +269,20 @@ h2 {
 }
 
 .timer {
-  font-size: clamp(11px, 3.2vw, 13px);
+  font-size: clamp(11.5px, 3.4vw, 13.5px);
   color: var(--text-secondary);
-  margin: 4px 0 6px 0;
+  margin: 4px 0 8px 0;
   font-family: var(--font-mono);
   flex-shrink: 0;
 }
 
 /* ==========================================================================
-   INPUT KEYPAD SEGMENT (Optimized footprint sizes)
+   INPUT SYSTEM (KEYPAD)
    ========================================================================== */
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
+  gap: 6px;
   margin: 6px 0;
   padding: 0 4px;
   width: 100%;
@@ -293,7 +292,7 @@ h2 {
 .keypad button {
   height: var(--key-size);
   width: 100%;
-  font-size: clamp(14px, 3.8vw, 17px);
+  font-size: clamp(14px, 3.8vw, 18px);
   background: var(--surface);
   color: var(--text-primary);
   border: none;
@@ -328,10 +327,10 @@ h2 {
 }
 
 .answer-box {
-  font-size: clamp(15px, 4.2vw, 18px);
+  font-size: clamp(15px, 4.5vw, 19px);
   color: var(--secondary);
-  margin: 4px 0;
-  min-height: 26px;
+  margin: 6px 0;
+  min-height: 28px;
   text-align: center;
   font-family: var(--font-mono);
   font-weight: 600;
@@ -342,13 +341,13 @@ h2 {
   border-radius: var(--border-radius);
   border: 1px solid var(--secondary);
   width: 100%;
-  max-width: 290px;
+  max-width: 295px;
 }
 
 .result {
-  font-size: clamp(11px, 3.2vw, 13px);
-  margin: 2px 0;
-  min-height: 16px;
+  font-size: clamp(11.5px, 3.2vw, 13.5px);
+  margin: 4px 0;
+  min-height: 18px;
   text-align: center;
   padding: 4px;
   border-radius: var(--border-radius);
@@ -356,7 +355,7 @@ h2 {
   color: var(--secondary);
   transition: var(--transition);
   width: 100%;
-  max-width: 290px;
+  max-width: 295px;
 }
 
 .result.error {
@@ -365,13 +364,13 @@ h2 {
 }
 
 /* ==========================================================================
-   QUESTION CARD ROW
+   QUESTION CARD DISPLAY
    ========================================================================== */
 .question-container {
   background: var(--surface);
-  padding: 12px 14px;
+  padding: 12px 16px;
   border-radius: var(--border-radius);
-  margin: 4px 0 8px 0;
+  margin: 4px 0 6px 0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 340px;
@@ -384,13 +383,16 @@ h2 {
 }
 
 #questionText {
-  font-size: clamp(12.5px, 3.6vw, 14.5px);
+  font-size: clamp(13px, 3.6vw, 15px);
   line-height: 1.45;
   text-align: center;
   color: var(--text-primary);
   margin: 0;
 }
 
+/* ==========================================================================
+   UTILITY SECTIONS (LEVELS, SETTINGS, MISC)
+   ========================================================================== */
 .level-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -398,7 +400,7 @@ h2 {
   margin: 12px 0;
   padding: 0 4px;
   width: 100%;
-  max-width: 380px;
+  max-width: 360px;
 }
 
 .level-btn {
@@ -471,11 +473,11 @@ h2 {
   border-radius: var(--border-radius);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   width: 100%;
-  max-width: 380px;
+  max-width: 360px;
 }
 
 .toggle-container label {
-  font-size: clamp(12px, 3.4vw, 14px);
+  font-size: clamp(12.5px, 3.4vw, 14.5px);
   color: var(--text-primary);
   display: flex;
   align-items: center;
@@ -617,7 +619,7 @@ canvas#confetti-canvas {
 .achievements {
   margin: 12px 0;
   width: 100%;
-  max-width: 380px;
+  max-width: 360px;
   text-align: left;
 }
 
@@ -744,38 +746,32 @@ canvas#confetti-canvas {
 }
 
 /* ==========================================================================
-   MEDIA RESPONSIVE QUERIES: Extra protection for small device layouts
+   SMART DEVICE CONDENSING (Protects shorter/compact viewport heights)
    ========================================================================== */
-@media (max-height: 740px) {
+@media (max-height: 750px) {
+  .container {
+    padding: 8px 16px;
+  }
   h2 {
-    font-size: clamp(18px, 4.8vw, 22px) !important;
-    margin: 2px 0 4px 0;
+    margin: 0 0 6px 0;
   }
   .question-container {
     margin: 2px 0 4px 0;
-    padding: 8px 12px;
+    padding: 10px 14px;
   }
   .keypad {
     gap: 4px;
     margin: 4px 0;
   }
   .keypad button {
-    height: calc(var(--key-size) * 0.88);
+    height: calc(var(--key-size) * 0.9);
   }
   .btn {
-    padding: 9px;
+    padding: 10px;
     margin: 4px auto;
   }
-}
-
-@media (max-width: 400px) {
-  .screen {
-    padding: 8px;
-  }
-  .level-grid {
-    gap: 5px;
-  }
-  .toggle-container {
-    padding: 6px 8px;
+  .answer-box {
+    margin: 4px 0;
+    padding: 4px;
   }
 }
