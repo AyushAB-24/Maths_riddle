@@ -11,7 +11,7 @@
   --text-secondary: #D1D1D1; /* Brighter gray for readability */
   --font-main: 'Poppins', sans-serif;
   --font-mono: 'Roboto Mono', monospace;
-  --key-size: min(14vw, 55px); /* Restored to original size */
+  --key-size: min(13vw, 50px); /* Perfectly balances size to keep keypad fully visible */
   --border-radius: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --glow-color: rgba(98, 0, 234, 0.7);
@@ -83,16 +83,16 @@ body.light-theme {
 }
 
 /* ==========================================================================
-   RESTORED: MASTER SCREEN STRUCTURE FOR PERFECT BANNER GAP
+   FIXED SCREEN ZONE: Leaves space at the bottom for the Test Ad banner
    ========================================================================== */
 .screen {
   display: none;
   width: 100%;
   height: 100%;
   flex-direction: column;
-  justify-content: space-between; /* Evenly spreads header, card, and layout controls */
+  justify-content: flex-start; /* Stacks items from the top down to leave room */
   align-items: center;
-  padding: 30px 20px 95px 20px !important; /* Balanced bottom padding to perfectly clear the banner ad */
+  padding: 20px 20px 70px 20px !important; /* Bottom padding accounts for the banner space */
   box-sizing: border-box;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -104,14 +104,14 @@ body.light-theme {
 }
 
 /* ==========================================================================
-   RESTORED: HEADER SEGMENTS
+   HEADER SEGMENTS
    ========================================================================== */
 .game-header {
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 #levelTitle {
@@ -135,6 +135,7 @@ body.light-theme {
   padding: 4px 12px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 12px;
 }
 
 .light-theme #levelTimer {
@@ -144,19 +145,19 @@ body.light-theme {
 }
 
 /* ==========================================================================
-   RESTORED: PUZZLE VIEWPORT CARD
+   FIXED PUZZLE VIEWPORT CARD: Shrinks wrapper to stop layout pushing
    ========================================================================== */
 .puzzle-card {
   width: 100%;
-  flex-grow: 1; /* Instructs the container card to comfortably use up available space */
+  max-width: 360px;
   display: flex;
   justify-content: center;
   align-items: center;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
-  padding: 25px;
-  margin: 15px 0;
+  padding: 16px 20px;
+  margin-bottom: 12px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -170,8 +171,8 @@ body.light-theme {
 
 #questionText {
   color: #E0E0FF;
-  font-size: clamp(1.15rem, 4vw, 1.4rem);
-  line-height: 1.6;
+  font-size: clamp(1rem, 3.8vw, 1.2rem);
+  line-height: 1.5;
   text-align: center;
   font-weight: 500;
 }
@@ -181,7 +182,7 @@ body.light-theme {
 }
 
 /* ==========================================================================
-   REST OF YOUR EXISTING GAME COMPONENTS
+   REST OF THE GAME COMPONENTS (Restored to their proper viewport visibility)
    ========================================================================== */
 .logo-container {
   display: flex;
@@ -484,30 +485,31 @@ h2 {
 }
 
 #riddleScreen {
-  padding-top: min(5vh, 25px);
+  padding-top: 10px;
 }
 
 .answer-section {
   width: 100%;
   max-width: 360px;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
+/* Rounded single-digit visual outline matching screenshot */
 .answer-display {
-  width: 100%;
-  height: 52px;
+  width: 38px;
+  height: 48px;
+  margin: 0 auto;
   background: rgba(0,0,0,0.2);
-  border: 2px solid var(--primary);
-  border-radius: var(--border-radius);
+  border: 2px solid var(--secondary);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--secondary);
   font-family: var(--font-mono);
   box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
-  letter-spacing: 2px;
 }
 
 .light-theme .answer-display {
@@ -517,12 +519,12 @@ h2 {
 }
 
 .result {
-  height: 20px;
-  font-size: 14px;
+  height: 18px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--secondary);
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .result.error {
@@ -541,8 +543,8 @@ h2 {
   max-width: 360px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: min(3vw, 10px);
-  margin-bottom: 15px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .key {
@@ -551,7 +553,7 @@ h2 {
   color: var(--text-primary);
   border: 1px solid rgba(255,255,255,0.02);
   border-radius: var(--border-radius);
-  font-size: min(5.5vw, 22px);
+  font-size: min(5vw, 20px);
   font-weight: 600;
   cursor: pointer;
   transition: background 0.1s ease, transform 0.1s ease;
@@ -579,9 +581,8 @@ h2 {
 }
 
 .delete-key {
-  background: rgba(207, 102, 121, 0.1);
-  color: var(--error);
-  border: 1px solid rgba(207, 102, 121, 0.2);
+  background: #6200EA; /* Reverted custom background colors matching original display screen */
+  color: #FFFFFF;
 }
 
 .back-key {
@@ -596,32 +597,28 @@ h2 {
 .game-actions {
   width: 100%;
   max-width: 360px;
-  display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
-  gap: min(2.5vw, 10px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .action-btn {
-  padding: 11px 5px;
-  font-size: min(3.5vw, 14px);
+  width: 100%;
+  padding: 12px 5px;
+  font-size: 15px;
   border-radius: var(--border-radius);
-}
-
-.submit-btn {
-  background: linear-gradient(135deg, var(--secondary), #018786);
-  color: #121212;
-  box-shadow: 0 4px 12px rgba(3, 218, 198, 0.25);
-}
-
-.submit-btn:active {
-  box-shadow: 0 2px 6px rgba(3, 218, 198, 0.25);
-}
-
-.hint-btn, .solution-btn {
   background: var(--surface);
   color: var(--text-primary);
   border: 1px solid rgba(255,255,255,0.04);
   box-shadow: none;
+}
+
+.submit-btn {
+  background: #6200EA;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .light-theme .hint-btn, .light-theme .solution-btn {
