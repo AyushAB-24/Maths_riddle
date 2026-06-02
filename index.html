@@ -11,15 +11,20 @@
   </head>
 <body>
   
-  <canvas id="particle-canvas"></canvas>
+  <canvas id=\"particle-canvas\"></canvas>
   <div id="splash">
-    <div class="logo">🧠</div>
+    <div class="logo">
+      <img src="math_riddle_logo.png" alt="Math Riddle Splash Logo" class="splash-logo" style="width: 120px; height: auto;">
+    </div>
     <div class="splash-text">Math Riddles</div>
   </div>
   <canvas id="confetti-canvas"></canvas>
 
   <div class="container">
     <div id="homeScreen" class="screen active">
+      <div class="logo-container" style="text-align: center; margin-bottom: 10px;">
+        <img src="math_riddle_logo.png" alt="Math Riddle Menu Logo" class="app-logo" style="max-width: 150px; height: auto; border-radius: 20px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+      </div>
       <h1>Math Riddles</h1>
       <button id="playBtn" class="btn">▶ Play</button>
       <button id="levelsBtn" class="btn secondary">📚 Levels</button>
@@ -29,78 +34,85 @@
 
     <div id="settingsScreen" class="screen">
       <h2>Settings</h2>
-      <div class="toggle-container">
-        <label for="musicToggle">🎵 Background Music</label>
-        <label class="switch">
-          <input type="checkbox" id="musicToggle">
-          <span class="slider"></span>
+      <div class="settings-group">
+        <label>
+          <span>🎵 Background Music</span>
+          <input type="checkbox" id="musicToggle" class="toggle">
+        </label>
+        <label>
+          <span>🔊 Sound Effects</span>
+          <input type="checkbox" id="sfxToggle" class="toggle">
+        </label>
+        <label>
+          <span>☀️ Light Theme</span>
+          <input type="checkbox" id="themeToggle" class="toggle">
         </label>
       </div>
-      <div class="toggle-container">
-        <label for="sfxToggle">🔊 Sound Effects</label>
-        <label class="switch">
-          <input type="checkbox" id="sfxToggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="toggle-container">
-        <label for="themeToggle">🌙 Theme (Light/Dark)</label>
-        <label class="switch">
-          <input type="checkbox" id="themeToggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="achievements">
-        <h3>Achievements</h3>
+      
+      <div class="achievements-section">
+        <h3>🏆 Achievements</h3>
         <ul id="achievementsList"></ul>
       </div>
+
       <button id="backFromSettingsBtn" class="btn secondary">⬅ Back</button>
     </div>
 
     <div id="levelsScreen" class="screen">
       <h2>Select Level</h2>
-      <div class="level-grid" id="levelButtons"></div>
+      <div class="progress-container">
+        <div class="progress-label">Total Progress</div>
+        <div class="progress-bar-bg">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+      </div>
+      <div id="levelButtons" class="level-grid"></div>
       <button id="backFromLevelsBtn" class="btn secondary">⬅ Back</button>
     </div>
 
     <div id="riddleScreen" class="screen">
-      <div class="game-content">
-        <h2 id="levelTitle">Level</h2>
-        <div class="progress-bar">
-          <div class="progress" id="progressBar"></div>
-        </div>
-        <div class="timer" id="levelTimer">Time: 0s</div>
-        <div class="question-container">
-          <p id="questionText"></p>
-        </div>
-        <div class="answer-box" id="answerBox"></div>
-        <div class="result" id="resultMsg"></div>
-        <div class="keypad">
-          <button data-number="1">1</button>
-          <button data-number="2">2</button>
-          <button data-number="3">3</button>
-          <button data-number="4">4</button>
-          <button data-number="5">5</button>
-          <button data-number="6">6</button>
-          <button data-number="7">7</button>
-          <button data-number="8">8</button>
-          <button data-number="9">9</button>
-          <button id="clearBtn" class="operator">C</button>
-          <button data-number="0">0</button>
-          <button id="submitBtn" class="operator">✓</button>
-        </div>
-        <button id="hintBtn" class="btn secondary">Hint</button>
-        <button id="solutionBtn" class="btn secondary">Solution</button>
-        <button id="backFromGameBtn" class="btn secondary">⬅ Back</button>
+      <div class="game-header">
+        <h2 id="levelTitle">Level 1</h2>
+        <div id="levelTimer">Time: 0s</div>
+      </div>
+      
+      <div class="card puzzle-card">
+        <p id="questionText">Loading puzzle...</p>
+      </div>
+      
+      <div class="answer-section">
+        <div id="answerBox" class="answer-display"></div>
+      </div>
+      
+      <div id="resultMsg" class="result"></div>
+
+      <div class="keypad">
+        <button class="key" data-number="1">1</button>
+        <button class="key" data-number="2">2</button>
+        <button class="key" data-number="3">3</button>
+        <button class="key" data-number="4">4</button>
+        <button class="key" data-number="5">5</button>
+        <button class="key" data-number="6">6</button>
+        <button class="key" data-number="7">7</button>
+        <button class="key" data-number="8">8</button>
+        <button class="key" data-number="9">9</button>
+        <button id="clearBtn" class="key action-key delete-key">Clear</button>
+        <button class="key" data-number="0">0</button>
+        <button id="backFromGameBtn" class="key action-key back-key">Back</button>
+      </div>
+
+      <div class="game-actions">
+        <button id="hintBtn" class="btn action-btn hint-btn">💡 Hint</button>
+        <button id="submitBtn" class="btn action-btn submit-btn">✔ Submit</button>
+        <button id="solutionBtn" class="btn action-btn solution-btn" disabled>🔑 Solution</button>
       </div>
     </div>
 
     <div id="quitModal" class="modal">
       <div class="modal-content">
-        <h3>Quit Game?</h3>
-        <p>Are you sure you want to exit the game?</p>
-        <div class="modal-buttons">
-          <button id="confirmQuitBtn" class="btn">Yes</button>
+        <h3>Exit Game</h3>
+        <p>Are you sure you want to quit the game?</p>
+        <div class="modal-actions">
+          <button id="confirmQuitBtn" class="btn danger">Yes</button>
           <button id="cancelQuitBtn" class="btn secondary">No</button>
         </div>
       </div>
@@ -126,11 +138,12 @@
   <audio id="wrongSound" src="wrong-answer.mp3"></audio>
   <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2024/04/22/audio_0b2b7c1e74.mp3"></audio>
   <audio id="levelCompleteSound" src="https://cdn.pixabay.com/download/audio/2023/12/27/audio_2c3f2b3c25.mp3"></audio>
-  <audio id="hintSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_8d0a2f1391.mp3"></audio>
-  <audio id="solutionSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_8d0a2f1391.mp3"></audio>
-  <audio id="screenTransitionSound" src="https://cdn.pixabay.com/download/audio/2024/04/22/audio_0b2b7c1e74.mp3"></audio>
-  <audio id="buttonHoverSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_8d0a2f1391.mp3"></audio>
+  <audio id="hintSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_22676043bc.mp3"></audio>
+  <audio id="solutionSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_bb630cc07b.mp3"></audio>
+  <audio id="screenTransitionSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_c230e5272a.mp3"></audio>
+  <audio id="buttonHoverSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_502d6a6a0d.mp3"></audio>
 
+  <script src="cordova.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
