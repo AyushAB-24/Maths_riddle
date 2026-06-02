@@ -84,6 +84,7 @@ body {
   to { opacity: 1; }
 }
 
+/* Find this block around line 84 in your CSS and change it to match this: */
 .screen {
   display: none;
   width: 100%;
@@ -92,8 +93,8 @@ body {
   justify-content: space-between;
   box-sizing: border-box;
   
-  /* Reduced from 75px to avoid pushing elements completely off screen */
-  padding-bottom: 10px !important; 
+  /* Adds a direct safe gap at the bottom of the screen content to lift the Back button away from the ad boundary */
+  padding-bottom: 16px !important; 
 }
   
 .light-theme #levelsScreen,
