@@ -45,12 +45,21 @@ jobs:
         fi
         npx cap sync android
 
-    - name: Inject AdMob App ID into Manifest
+    - name: Inject AdMob App ID and Billing Permission into Manifest
       run: |
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST" ]; then
+          # Inject AdMob Meta-Data if missing
           if ! grep -q "com.google.android.gms.ads.APPLICATION_ID" "$MANIFEST"; then
             sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-1825832964235064~3094905301"/>\n    </application>|' "$MANIFEST"
+          fi
+          
+          # Inject Google Play In-App Purchasing Permission if missing
+          if ! grep -q "com.android.vending.BILLING" "$MANIFEST"; then
+            # Ensure the manifest tag has the android namespace declaration
+            sed -i 's|<manifest|& xmlns:android="http://schemas.android.com/apk/res/android"|' "$MANIFEST"
+            # Place billing permission right before the main application tag structure
+            sed -i 's|<application|<uses-permission android:name="com.android.vending.BILLING"/>\n    <application|' "$MANIFEST"
           fi
         fi
 
@@ -63,14 +72,14 @@ jobs:
           fi
         fi
 
-    - name: Update Version to 3.0 (Version Code 3)
+    - name: Update Version to 4.0 (Version Code 4)
       run: |
         GRADLE="android/app/build.gradle"
         if [ -f "$GRADLE" ]; then
-          # Updates the internal version code tracking number to 3
-          sed -i 's/versionCode [0-9]*/versionCode 3/g' "$GRADLE"
-          # Updates the user-visible version string to 3.0
-          sed -i 's/versionName "[0-9.]*"/versionName "3.0"/g' "$GRADLE"
+          # Updates the internal version code tracking number to 4 for Google Play Store matching requirements
+          sed -i 's/versionCode [0-9]*/versionCode 4/g' "$GRADLE"
+          # Updates the user-visible version string to 4.0
+          sed -i 's/versionName "[0-9.]*"/versionName "4.0"/g' "$GRADLE"
         fi
 
     - name: Compile Debug APK
@@ -82,5 +91,5 @@ jobs:
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: math-riddles-live-ads
+        name: math-riddles-live-ads-v4
         path: android/app/build/outputs/apk/debug/app-debug.apk
