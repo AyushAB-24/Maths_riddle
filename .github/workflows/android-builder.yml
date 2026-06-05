@@ -30,8 +30,10 @@ jobs:
       run: |
         mkdir -p dist
         cp index.html styles.css script.js dist/
-        # Copy audio assets — required for in-app music and sound effects
-        cp bg-music.mp3 correct-answer.mp3 wrong-answer.mp3 dist/
+        # Robust audio check: Handles case differences dynamically
+        find . -maxdepth 3 -iname "bg-music.mp3" -exec cp {} dist/bg-music.mp3 \;
+        find . -maxdepth 3 -iname "correct-answer.mp3" -exec cp {} dist/correct-answer.mp3 \;
+        find . -maxdepth 3 -iname "wrong-answer.mp3" -exec cp {} dist/wrong-answer.mp3 \;
 
     - name: Create Capacitor Config
       run: |
@@ -39,7 +41,6 @@ jobs:
 
     - name: Add & Sync Capacitor Android
       run: |
-        # Only add android platform if it hasn't been added yet
         if [ ! -d "android" ]; then
           npx cap add android
         fi
@@ -56,9 +57,7 @@ jobs:
           
           # Inject Google Play In-App Purchasing Permission if missing
           if ! grep -q "com.android.vending.BILLING" "$MANIFEST"; then
-            # Ensure the manifest tag has the android namespace declaration
             sed -i 's|<manifest|& xmlns:android="http://schemas.android.com/apk/res/android"|' "$MANIFEST"
-            # Place billing permission right before the main application tag structure
             sed -i 's|<application|<uses-permission android:name="com.android.vending.BILLING"/>\n    <application|' "$MANIFEST"
           fi
         fi
@@ -76,9 +75,7 @@ jobs:
       run: |
         GRADLE="android/app/build.gradle"
         if [ -f "$GRADLE" ]; then
-          # Updates the internal version code tracking number to 4 for Google Play Store matching requirements
           sed -i 's/versionCode [0-9]*/versionCode 4/g' "$GRADLE"
-          # Updates the user-visible version string to 4.0
           sed -i 's/versionName "[0-9.]*"/versionName "4.0"/g' "$GRADLE"
         fi
 
