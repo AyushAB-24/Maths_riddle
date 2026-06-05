@@ -50,14 +50,13 @@ jobs:
       run: |
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST" ]; then
-          # Inject AdMob Meta-Data if missing
+          # Inject AdMob Meta-Data safely right before the closing application tag if missing
           if ! grep -q "com.google.android.gms.ads.APPLICATION_ID" "$MANIFEST"; then
             sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-1825832964235064~3094905301"/>\n    </application>|' "$MANIFEST"
           fi
           
-          # Inject Google Play In-App Purchasing Permission if missing
+          # Inject Google Play In-App Purchasing Permission safely right before the opening application tag starts
           if ! grep -q "com.android.vending.BILLING" "$MANIFEST"; then
-            sed -i 's|<manifest|& xmlns:android="http://schemas.android.com/apk/res/android"|' "$MANIFEST"
             sed -i 's|<application|<uses-permission android:name="com.android.vending.BILLING"/>\n    <application|' "$MANIFEST"
           fi
         fi
